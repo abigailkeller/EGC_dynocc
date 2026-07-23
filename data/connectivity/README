@@ -1,0 +1,7 @@
+In the yearly connectivity matrix CSVs:
+
+Rows are settlement zones.
+Columns are release zones.
+
+"Count" is just the number of larvae released from zone i and settled in zone j.
+"Percent" is the "Count" matrix normalized to tell you settlement success % (#larvae / total released that zone * 100)
