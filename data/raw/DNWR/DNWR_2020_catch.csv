@@ -1,0 +1,4 @@
+Crab ID,Crab #,Capture Date,Week,StartDateLocation_ForCaptureTrap,"Trap Type (Fukui, Minnow,Burrow, Hand)",Sex,Size (mm),Site Name,Trap Number,TrapIDJoin,Trap Coordinates X,Trap Coordinates Y,Eggs,Missing Limb Locations,"Approximate Ventral Color (LG,DG,RO)",Molt Stage (Pre/Post/Inter),Disposition,Indiv. Pictures? (Y/N),GPS Record? (Y/N),Recorder,Notes,Notes2
+EGC_2020.1,1,4/8/2020,1,4/7/2020,Fukui,Male,58,Channel,14,Fukui-14_4/7/2020,-123.13751,48.174492,No,-,Red-Orange,Pre,USFWS-Freezer,Yes,Yes,Lorenz Sollmann/Juliana Merluccio,-,-
+EGC_2020.2,2,4/24/2020,3,4/21/2020,Fukui,Male,77,Channel,14,Fukui-14_4/21/2020,-123.13751,48.174492,No,"R1, L3, L4",Dark Green,Inter,USFWS-Freezer,Yes,Yes,Bethany McKim,-,-
+EGC_2020.3,3,7/22/2020,16,7/21/2020,Fukui,Male,36,Channel,18,Fukui-18_7/21/2020,-123.138226,48.174943,No,None,Light Green,Post,Given to WSG,Yes,Yes,Bethany McKim,Kept alive and transfered to WSG on 7/24 for genetics testing,-

@@ -1,0 +1,58 @@
+Crab ID,Crab #,Capture Date,Week,StartDateLocation_ForCaptureTrap,Trap Type,Sex,Size (mm),Trap Area (Field Trap Loc/Number),Trap Number,TrapIDJoin,Trap Coordinates X,Trap Coordinates Y,Eggs,Missing Limb Locations,"Approximate Ventral Color (LG,DG,RO)",Molt Stage (Pre/Post/Inter),Disposition,Indiv. Pictures? (Y/N),GPS Record? (Y/N),Recorder,Notes
+EGC_2019.41,41,5/21/2019,7,5/20/2019,Fukui,Male,77,Channel,19,Fukui-19_5/20/2019,-123.1386508,48.17496041,-,"R1,L1,L3,L4",Red-orange,,Frozen,,Yes,Doug Marcoux,"5th marginal tooth on left side was eroded away, see pictures"
+EGC_2019.46,46,6/21/2019,11,6/17/2019,Fukui,Male,73,Channel,4,Fukui-4_6/17/2019,-123.1370517,48.17354833,-,"L1,R4, R3 (partial)",Red-orange,,Frozen,,Yes,Laura Davis,missing last segment on R3
+EGC_2019.50,50,7/30/2019,17,7/29/2019,Fukui,Male,77,Channel,8,Fukui-8_7/29/2019,-123.1363267,48.17374833,-,None,Dark Green,,Frozen,,Yes,Kathy A,Under color more yellowy
+EGC_2019.1,1,4/9/2019,1,4/8/2019,Fukui,Female,70,Channel,2,Fukui-2_4/8/2019,-123.13744,48.17364167,No,-,Red-orange,,Frozen,Yes,Yes,Lorenz Sollmann,Abodmen Deformed
+EGC_2019.2,2,4/9/2019,1,4/8/2019,Fukui,Male,79,Channel,3,Fukui-3_4/8/2019,-123.137335,48.17374,-,"R5, L3",Red-orange,,Frozen,Yes,Yes,Lorenz Sollmann,
+EGC_2019.3,3,4/9/2019,1,4/8/2019,Fukui,Male,83,Channel,3,Fukui-3_4/8/2019,-123.137335,48.17374,-,R1,Red-orange,,Frozen,Yes,Yes,Lorenz Sollmann,"Limb damage noted by WSG, L1 had damaged dactyl"
+EGC_2019.4,4,4/9/2019,1,4/8/2019,Fukui,Male,72,Channel,4,Fukui-4_4/8/2019,-123.1370517,48.17354833,-,L5,Red-orange,,Frozen,Yes,Yes,Lorenz Sollmann,Barnacle on carapace
+EGC_2019.5,5,4/9/2019,1,4/8/2019,Minnow,Male,59,Channel,15,Minnow-15_4/8/2019,-123.13795,48.174595,-,None,Light Green,,Frozen,Yes,Yes,Lorenz Sollmann,
+EGC_2019.6,6,4/9/2019,1,4/8/2019,Minnow,Male,67,Channel,20,Minnow-20_4/8/2019,-123.1386423,48.17479529,-,"R1, R2",Light Green,,Frozen,Yes,Yes,Lorenz Sollmann,
+EGC_2019.7,7,4/18/2019,2,4/17/2019,Minnow,Female,45,Channel,2,Minnow-2_4/17/2019,-123.1374533,48.17353833,No,None,Light Green,,Frozen,Yes,Yes,Laura Davis,
+EGC_2019.8,8,4/18/2019,2,4/17/2019,Fukui,Male,57,Channel,10,Fukui-10_4/17/2019,-123.1370533,48.17391667,-,None,Light Green,,Frozen,Yes,Yes,Doug Marcoux,
+EGC_2019.9,9,4/18/2019,2,4/17/2019,Fukui,Male,52,Channel,18,Fukui-18_4/17/2019,-123.1384281,48.17507313,-,None,Light Green,,Frozen,Yes,Yes,Laura Davis,
+EGC_2019.10,10,4/19/2019,2,4/17/2019,Fukui,Male,47,Channel,20,Fukui-20_4/17/2019,-123.1386551,48.17473207,-,None,Light Green,,Frozen,Yes,Yes,Sue Bonomo,
+EGC_2019.15,15,4/23/2019,3,4/22/2019,Fukui,Male,86,Base Lagoon,103,Fukui-103_4/22/2019,-123.1838867,48.14650667,-,"R2, R3, L2",Red-orange,,Frozen,Yes,Yes,Carol Jacobs,
+EGC_2019.11,11,4/23/2019,3,4/22/2019,Fukui,Male,81,Channel,18,Fukui-18_4/22/2019,-123.1384281,48.17507313,-,R5,Red-orange,,Frozen,Yes,Yes,Sue Bonomo,Limb damage noted by WSG
+EGC_2019.12,12,4/23/2019,3,4/22/2019,Fukui,Female,38,Channel,18,Fukui-18_4/22/2019,-123.1384281,48.17507313,No,None,Dark Green,,Frozen,Yes,Yes,Sue Bonomo,
+EGC_2019.13,13,4/23/2019,3,4/22/2019,Fukui,Male,38,Channel,18,Fukui-18_4/22/2019,-123.1384281,48.17507313,-,None,Light-Green/Dark Green,,Frozen,Yes,Yes,Sue Bonomo,
+EGC_2019.14,14,4/23/2019,3,4/22/2019,Minnow,Female,54,Channel,14,Minnow-14_4/22/2019,-123.137655,48.174505,No,"L1, R1",Red-orange,,Frozen,Yes,Yes,Sue Bonomo,
+EGC_2019.16,16,4/24/2019,3,4/22/2019,Fukui,Female,69,Channel,4,Fukui-4_4/22/2019,-123.1370517,48.17354833,No,"L1, R1",Red-orange,,Frozen,Yes,Yes,Sue Bonomo,
+EGC_2019.17,17,5/3/2019,4,5/1/2019,Minnow,Male,56,Channel,2,Minnow-2_5/1/2019,-123.1374533,48.17353833,-,None,Light Green,,Frozen,Yes,Yes,Laura Davis,
+EGC_2019.18,18,5/3/2019,4,5/1/2019,Fukui,Female,55,Channel,5,Fukui-5_5/1/2019,-123.1368828,48.17338415,No,R5,Dark Green,,Frozen,Yes,Yes,Laura Davis,
+EGC_2019.23,23,5/7/2019,5,5/6/2019,Fukui,Female,75,Base Lagoon,103,Fukui-103_5/6/2019,-123.1838867,48.14650667,No,L2,Red-orange,,Frozen,Yes,Yes,Lorenz Sollmann,
+EGC_2019.24,24,5/7/2019,5,5/6/2019,Fukui,Male,68,Base Lagoon,103,Fukui-103_5/6/2019,-123.1838867,48.14650667,-,"R1,R2,R3",Red-orange,,Frozen,Yes,Yes,Lorenz Sollmann,
+EGC_2019.19,19,5/7/2019,5,5/6/2019,Fukui,Female,67,Channel,7,Fukui-7_5/6/2019,-123.1364833,48.173705,No,None,Light Green,,Frozen,Yes,Yes,Juliana Merluccio,Caught in MMP trap
+EGC_2019.20,20,5/7/2019,5,5/6/2019,Fukui,Male,57,Channel,7,Fukui-7_5/6/2019,-123.1364833,48.173705,-,None,Light Green,,Frozen,Yes,Yes,Juliana Merluccio,Caught in MMP trap
+EGC_2019.21,21,5/7/2019,5,5/6/2019,Fukui,Male,67,Channel,2,Fukui-2_5/6/2019,-123.13744,48.17364167,-,None,Light-Green,,Frozen,Yes,Yes,Lorenz Sollmann,
+EGC_2019.22,22,5/7/2019,5,5/6/2019,Minnow,Female,56,Channel,1,Minnow-1_5/6/2019,-123.1374467,48.17339833,No,None,Light Green,,Frozen,Yes,Yes,Lorenz Sollmann,
+EGC_2019.25,25,5/8/2019,5,5/6/2019,Fukui,Male,66,Channel,1,Fukui-1_5/6/2019,-123.1374617,48.17347167,-,None,Red-orange,,Frozen,Yes,Yes,Doug Marcoux,Under color is more tan than red-orange
+EGC_2019.26,26,5/8/2019,5,5/6/2019,Fukui,Male,41,Channel,4,Fukui-4_5/6/2019,-123.1370517,48.17354833,-,None,Light Green,,Frozen,Yes,Yes,Doug Marcoux,
+EGC_2019.27,27,5/9/2019,5,5/6/2019,Fukui,Male,77,Channel,1,Fukui-1_5/6/2019,-123.1374617,48.17347167,-,R1,Red-orange,,Frozen,Yes,Yes,Carol Jacobs,
+EGC_2019.28,28,5/9/2019,5,5/6/2019,Fukui,Female,51,Channel,4,Fukui-4_5/6/2019,-123.1370517,48.17354833,No,None,Light Green,,Frozen,Yes,Yes,Carol Jacobs,
+EGC_2019.29,29,5/9/2019,5,5/6/2019,Fukui,Male,69,Channel,4,Fukui-4_5/6/2019,-123.1370517,48.17354833,-,None,Red-orange,,Frozen,Yes,Yes,Carol Jacobs,
+EGC_2019.30,30,5/9/2019,5,5/6/2019,Fukui,Male,60,Channel,4,Fukui-4_5/6/2019,-123.1370517,48.17354833,-,None,Light Green,,Frozen,Yes,Yes,Carol Jacobs,
+EGC_2019.31,31,5/9/2019,5,5/6/2019,Fukui,Male,59,Channel,4,Fukui-4_5/6/2019,-123.1370517,48.17354833,-,None,Light Green,,Frozen,Yes,Yes,Carol Jacobs,
+EGC_2019.32,32,5/9/2019,5,5/6/2019,Fukui,Male,60,Channel,17,Fukui-17_5/6/2019,-123.13809,48.174935,-,L2,Light Green,,Frozen,Yes,Yes,Carol Jacobs,
+EGC_2019.33,33,5/17/2019,6,5/16/2019,Fukui,Male,82,Channel,8,Fukui-8_5/16/2019,-123.1363267,48.17374833,-,L2,Light Green,,Frozen,,Yes,Juliana Merluccio,
+EGC_2019.34,34,5/17/2019,6,5/16/2019,Fukui,Female,47,Channel,6,Fukui-6_5/16/2019,-123.1366017,48.173555,No,None,Dark Green,,Frozen,,Yes,Juliana Merluccio,
+EGC_2019.35,35,5/17/2019,6,5/16/2019,Fukui,Male,52,Channel,14,Fukui-14_5/16/2019,-123.137825,48.17452,-,None,Dark Green,,Frozen,,Yes,Juliana Merluccio,
+EGC_2019.36,36,5/17/2019,6,5/16/2019,Fukui,Female,47,Channel,20,Fukui-20_5/16/2019,-123.1386551,48.17473207,No,None,Dark Green,,Frozen,,Yes,Juliana Merluccio,
+EGC_2019.37,37,5/21/2019,7,5/20/2019,Fukui,Male,82,Channel,3,Fukui-3_5/20/2019,-123.137335,48.17374,-,None,Red-orange,,Frozen,,Yes,Doug Marcoux,Barnacles
+EGC_2019.38,38,5/21/2019,7,5/20/2019,Fukui,Male,87,Channel,3,Fukui-3_5/20/2019,-123.137335,48.17374,-,R1,Red-orange,,Frozen,,Yes,Doug Marcoux,
+EGC_2019.39,39,5/21/2019,7,5/20/2019,Fukui,Male,82,Channel,9,Fukui-9_5/20/2019,-123.1367717,48.17390167,-,"1/2 of R1, L2,L4",Red-orange,,Frozen,,Yes,Doug Marcoux,
+EGC_2019.40,40,5/21/2019,7,5/20/2019,Fukui,Female,53,Channel,9,Fukui-9_5/20/2019,-123.1367717,48.17390167,No,None,Light Green,,Frozen,,Yes,Doug Marcoux,
+EGC_2019.42,42,6/4/2019,9,6/3/2019,Fukui,Male,65,Channel,18,Fukui-18_6/3/2019,-123.1384281,48.17507313,-,None,Light Green,,Frozen,,Yes,David Xu,
+EGC_2019.43,43,6/5/2019,9,6/3/2019,Fukui,Male,37,Base Lagoon,101,Fukui-101_6/3/2019,-123.1835316,48.14648283,-,None,Light Green,,Kept alive for genetic testing; on 6/5 gave to WDFW to give to WSG,,Yes,Juliana Merluccio,
+EGC_2019.44,44,6/6/2019,9,6/3/2019,Fukui,Male,87,Channel,7,Fukui-7_6/3/2019,-123.1364833,48.173705,-,"R4, L3, L5",Red-orange,,Frozen,,Yes,Sue Bonomo,
+EGC_2019.45,45,6/20/2019,11,6/17/2019,Fukui,Male,84,Channel,18,Fukui-18_6/17/2019,-123.1384281,48.17507313,-,None,Red-orange,,Frozen,,Yes,Sue Bonomo,
+EGC_2019.47,47,6/21/2019,11,6/17/2019,Fukui,Female,52,Channel,13,Fukui-13_6/17/2019,-123.1375483,48.17451667,No,"R3, R4, L1",Dark Green,,Frozen,,Yes,Laura Davis,
+EGC_2019.48,48,7/3/2019,13,7/1/2019,Fukui,Male,78,Channel,20,Fukui-20_7/1/2019,-123.1386551,48.17473207,-,"R5, L5",Red-orange,,Frozen,,Yes,Juliana Merluccio,
+EGC_2019.49,49,7/19/2019,15,7/15/2019,Fukui,Male,75,Channel,20,Fukui-20_7/15/2019,-123.1386551,48.17473207,-,R2,Red-orange,,Frozen,,Yes,Laura Davis,
+EGC_2019.51,51,7/31/2019,17,7/29/2019,Fukui,Male,83,Channel,3,Fukui-3_7/29/2019,-123.137335,48.17374,-,L1,Red-orange,,Frozen,,Yes,Laura Davis,"R3 was recently regenerated (very small and thin compared to other limbs), barnacle on carapace"
+EGC_2019.52,52,8/13/2019,19,8/12/2019,Fukui,Male,68,Channel,10,Fukui-10_8/12/2019,-123.1370533,48.17391667,-,None,Dark Green,,Frozen,,Yes,Laura Davis,
+EGC_2019.53,53,8/13/2019,19,8/12/2019,Fukui,Male,75,Channel,9,Fukui-9_8/12/2019,-123.1367717,48.17390167,-,"R5, L1,L2",Red-orange,,Frozen,,Yes,Laura Davis,
+EGC_2019.54,54,8/13/2019,19,8/12/2019,Fukui,Male,81,Channel,9,Fukui-9_8/12/2019,-123.1367717,48.17390167,-,L3,Red-orange,,Frozen,,Yes,Laura Davis,
+EGC_2019.55,55,8/13/2019,19,8/12/2019,Fukui,Male,73,Channel,9,Fukui-9_8/12/2019,-123.1367717,48.17390167,-,None,Red-orange,,Frozen,,Yes,Laura Davis,
+EGC_2019.56,56,8/13/2019,19,8/12/2019,Fukui,Male,67,Channel,9,Fukui-9_8/12/2019,-123.1367717,48.17390167,-,None,Red-orange,,Frozen,,Yes,Laura Davis,
+EGC_2019.57,57,9/12/2019,23,9/9/2019,Fukui,Male,41,Channel,8,Fukui-8_9/9/2019,-123.1363267,48.17374833,,None,Light Green,,Given to WSG,Yes,Yes,Juliana Merluccio,No picture of abdomen--but light green. Confirmed by WSG as a recently molted. Determined to be YOY from WSG dissection. 
