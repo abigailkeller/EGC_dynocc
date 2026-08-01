@@ -1,24 +1,43 @@
 ################################################################################
-# BayesianTrapData.R
+# 02_BayesianTrapData.R
 #
-# Build three aligned inputs for the Bayesian occupancy model from the combined
-# monitoring dataset produced by summarize_data_all_traptypes.R.
+# Build the model inputs for the Bayesian dynamic occupancy model from the
+# combined monitoring dataset produced by 01_summarize_data_all_traptypes.R.
 #
-# FILTERS
-#   * 2018 onward (change FIRST_YEAR below if a literal post-2018 cutoff is
-#     required).
-#   * Shrimp, Fukui, and Minnow traps only. Spelling, case, punctuation, and
-#     qualified variants (for example "Shrimp - C" and "Minnow - Unmodified")
-#     are consolidated to the three canonical names.
-#   * Sites inside data/SpatialData/study_extent.shp.
+# STRUCTURE (changed)
+# -------------------
+# Everything is now indexed [site, year, trap], where `trap` is a REPLICATE
+# SLOT within a site-year, not a fixed trap-type position. Site-year (i, t)
+# deployed n_traps[i, t] trap types; those occupy slots 1..n_traps[i, t] in
+# canonical order (Fukui, Shrimp, Minnow). Slots beyond n_traps[i, t] -- and
+# every slot of a site-year that was never sampled -- are NA.
+#
+# So a cell is "real" iff it is not NA, and the number of real cells equals the
+# number of site/year/trap-type records that survive the filters (917).
+#
+# FILTERS (unchanged from the previous version)
+#   * year >= 2018
+#   * Shrimp, Fukui and Minnow traps only. Case, punctuation and qualified
+#     variants ("Shrimp - C", "Minnow - Unmodified", ...) collapse to the three
+#     canonical names.
+#   * Sites whose representative coordinate falls inside
+#     data/SpatialData/study_extent.shp.
+#   * NO completeness filter: sites and years are kept however sparse they are.
 #
 # OUTPUTS (data/model_data/)
-#   * PresenceArrayBinary.rds: binary [site, trap_type, year] detections.
-#   * TrapTypeArraysNew.rds:   binary [site, trap_type, year] deployment.
-#   * cpue_fukui.rds:          numeric [site, year] Fukui CPUE.
+#   PresenceArray.rds  int [site, year, trap]  1 = EGC caught in that trap type
+#                                              at that site-year, 0 = not
+#                                              caught, NA = slot unused.
+#   TrapType.rds       named list of three int [site, year, trap] arrays,
+#                      $Fukui, $Shrimp, $Minnow. 1 = that slot is that trap
+#                      type, 0 = it is one of the others, NA = slot unused.
+#                      Across the three, every non-NA cell sums to exactly 1.
+#                      Access as tt <- readRDS("TrapType.rds"); tt$Fukui
+#   cpue.rds           num [site, year]        pooled catch / pooled effort
+#                                              over all trap types deployed.
 #
-# All products use exactly the same site and year labels in exactly the same
-# order. The script validates this invariant before and after writing the files.
+# Every product uses the same site and year labels in the same order; the
+# script asserts this before and after writing.
 ################################################################################
 
 suppressPackageStartupMessages({
@@ -31,8 +50,8 @@ if (!requireNamespace("here", quietly = TRUE)) {
 }
 here::i_am("code/data_prep/02_BayesianTrapData.R")
 
-FIRST_YEAR <- 2018L
-CANONICAL_TRAPS <- c("Shrimp", "Fukui", "Minnow")
+FIRST_YEAR      <- 2018L
+CANONICAL_TRAPS <- c("Fukui", "Shrimp", "Minnow")  # slot fill order
 
 canonical_trap_type <- function(x) {
   cleaned <- tolower(trimws(as.character(x)))
@@ -40,59 +59,28 @@ canonical_trap_type <- function(x) {
   cleaned <- gsub("[[:space:]]+", " ", cleaned)
   result <- rep(NA_character_, length(cleaned))
   result[grepl("\\bshrimp\\b", cleaned)] <- "Shrimp"
-  result[is.na(result) & grepl("\\bfukui\\b", cleaned)] <- "Fukui"
+  result[is.na(result) & grepl("\\bfukui\\b", cleaned)]  <- "Fukui"
   result[is.na(result) & grepl("\\bminnow\\b", cleaned)] <- "Minnow"
   result
 }
 
-assert_model_products_aligned <- function(presence, traptype, cpue,
-                                          canonical_traps = CANONICAL_TRAPS) {
-  stopifnot(
-    is.array(presence), length(dim(presence)) == 3L,
-    is.array(traptype), length(dim(traptype)) == 3L,
-    is.matrix(cpue),
-    identical(dim(presence), dim(traptype)),
-    identical(dimnames(presence), dimnames(traptype)),
-    identical(names(dimnames(presence)), c("site", "trap_type", "year")),
-    identical(names(dimnames(cpue)), c("site", "year")),
-    identical(dimnames(presence)$site, dimnames(cpue)$site),
-    identical(dimnames(presence)$year, dimnames(cpue)$year),
-    identical(dimnames(presence)$trap_type, canonical_traps),
-    !anyDuplicated(dimnames(presence)$site),
-    !anyDuplicated(dimnames(presence)$year),
-    all(presence %in% c(0L, 1L)),
-    all(traptype %in% c(0L, 1L)),
-    all(presence <= traptype),
-    all(is.na(cpue) | is.finite(cpue)),
-    all(is.na(cpue) | cpue >= 0)
-  )
-
-  fukui_deployed <- traptype[, "Fukui", , drop = TRUE] == 1L
-  stopifnot(
-    identical(dim(fukui_deployed), dim(cpue)),
-    identical(dimnames(fukui_deployed), dimnames(cpue)),
-    identical(!is.na(cpue), fukui_deployed)
-  )
-  invisible(TRUE)
-}
-
-input_file <- here::here("data", "data_all_sources_all_traptypes.csv")
+input_file  <- here::here("data", "data_all_sources_all_traptypes.csv")
 extent_file <- here::here("data", "SpatialData", "study_extent.shp")
-outdir <- here::here("data", "model_data")
+outdir      <- here::here("data", "model_data")
 
 if (!file.exists(input_file)) {
-  stop("Missing ", input_file, ". Run summarize_data_all_traptypes.R first.")
+  stop("Missing ", input_file, ". Run 01_summarize_data_all_traptypes.R first.")
 }
-if (!file.exists(extent_file)) {
-  stop("Missing ", extent_file, ".")
-}
+if (!file.exists(extent_file)) stop("Missing ", extent_file, ".")
 dir.create(outdir, showWarnings = FALSE, recursive = TRUE)
 
+# ---------------------------------------------------------------------------
+# Read and filter
+# ---------------------------------------------------------------------------
 dat <- read.csv(input_file, stringsAsFactors = FALSE, check.names = FALSE)
-required_columns <- c(
-  "site_name", "year", "trap_type", "catch", "effort",
-  "latitude", "longitude"
-)
+
+required_columns <- c("site_name", "year", "trap_type", "catch", "effort",
+                      "latitude", "longitude")
 missing_columns <- setdiff(required_columns, names(dat))
 if (length(missing_columns) > 0L) {
   stop("Input is missing required columns: ",
@@ -102,131 +90,153 @@ if (length(missing_columns) > 0L) {
 dat <- dat %>%
   transmute(
     site_name = trimws(as.character(site_name)),
-    year = suppressWarnings(as.integer(as.character(year))),
+    year      = suppressWarnings(as.integer(as.character(year))),
     trap_type = canonical_trap_type(trap_type),
-    catch = suppressWarnings(as.numeric(catch)),
-    effort = suppressWarnings(as.numeric(effort)),
-    latitude = suppressWarnings(as.numeric(latitude)),
+    catch     = suppressWarnings(as.numeric(catch)),
+    effort    = suppressWarnings(as.numeric(effort)),
+    latitude  = suppressWarnings(as.numeric(latitude)),
     longitude = suppressWarnings(as.numeric(longitude))
   ) %>%
-  filter(
-    nzchar(site_name),
-    !is.na(year), year >= FIRST_YEAR,
-    !is.na(trap_type)
-  )
+  filter(nzchar(site_name), !is.na(year), year >= FIRST_YEAR, !is.na(trap_type))
 
-if (nrow(dat) == 0L) {
-  stop("No records remain after the year and trap-type filters.")
-}
+if (nrow(dat) == 0L) stop("No records remain after the year/trap-type filters.")
 if (any(dat$catch < 0, na.rm = TRUE) || any(dat$effort < 0, na.rm = TRUE)) {
   stop("Catch and effort must be non-negative.")
 }
 
-# Use one representative coordinate per normalized site. A site is retained
-# when that representative point intersects the study extent.
+# One representative coordinate per site; keep sites inside the study extent.
 site_points <- dat %>%
   group_by(site_name) %>%
   summarise(
-    latitude = if (all(is.na(latitude))) NA_real_ else mean(latitude, na.rm = TRUE),
+    latitude  = if (all(is.na(latitude)))  NA_real_ else mean(latitude,  na.rm = TRUE),
     longitude = if (all(is.na(longitude))) NA_real_ else mean(longitude, na.rm = TRUE),
     .groups = "drop"
   ) %>%
   filter(is.finite(latitude), is.finite(longitude))
 
-extent <- st_make_valid(st_read(extent_file, quiet = TRUE))
-site_sf <- st_as_sf(
-  site_points,
-  coords = c("longitude", "latitude"),
-  crs = 4326,
-  remove = FALSE
-)
+extent  <- st_make_valid(st_read(extent_file, quiet = TRUE))
+site_sf <- st_as_sf(site_points, coords = c("longitude", "latitude"),
+                    crs = 4326, remove = FALSE)
 site_sf <- st_transform(site_sf, st_crs(extent))
-inside <- lengths(st_intersects(site_sf, extent)) > 0L
-sites_in_extent <- site_sf$site_name[inside]
+sites_in_extent <- site_sf$site_name[lengths(st_intersects(site_sf, extent)) > 0L]
 
-message(
-  length(sites_in_extent), " sites inside the study extent; ",
-  length(setdiff(unique(dat$site_name), sites_in_extent)),
-  " outside or missing coordinates."
-)
+message(length(sites_in_extent), " sites inside the study extent; ",
+        length(setdiff(unique(dat$site_name), sites_in_extent)),
+        " outside or missing coordinates.")
 
-# Consolidate all source and spelling variants to one row per canonical
-# site/trap/year. Rows with effort but missing catch are treated as zero catch;
-# rows without positive effort are not considered sampled.
+# ---------------------------------------------------------------------------
+# Collapse source/spelling variants to one row per site/year/trap type, then
+# assign each surviving row a replicate slot within its site-year.
+# Rows with effort but missing catch are treated as zero catch. Rows without
+# positive effort were not sampled and get no slot.
+# ---------------------------------------------------------------------------
 cell_data <- dat %>%
   filter(site_name %in% sites_in_extent) %>%
-  group_by(site_name, trap_type, year) %>%
+  group_by(site_name, year, trap_type) %>%
   summarise(
     effort = sum(effort, na.rm = TRUE),
-    catch = if (sum(effort, na.rm = TRUE) > 0) sum(catch, na.rm = TRUE) else NA_real_,
+    catch  = sum(catch,  na.rm = TRUE),
     .groups = "drop"
-  )
+  ) %>%
+  filter(effort > 0) %>%
+  mutate(trap_type = factor(trap_type, levels = CANONICAL_TRAPS)) %>%
+  arrange(site_name, year, trap_type) %>%
+  group_by(site_name, year) %>%
+  mutate(slot = row_number()) %>%
+  ungroup()
 
-if (nrow(cell_data) == 0L) {
-  stop("No records remain after the spatial filter.")
-}
+if (nrow(cell_data) == 0L) stop("No records remain after the spatial filter.")
 
 sites <- sort(unique(cell_data$site_name))
 years <- sort(unique(cell_data$year))
-traps <- CANONICAL_TRAPS
+ntrap <- max(cell_data$slot)          # maximum number of traps in any site-year
 
-dnames <- list(
-  site = sites,
-  trap_type = traps,
-  year = as.character(years)
+dims   <- c(length(sites), length(years), ntrap)
+dnames <- list(site = sites,
+               year = as.character(years),
+               trap = as.character(seq_len(ntrap)))
+
+idx <- cbind(match(cell_data$site_name, sites),
+             match(cell_data$year,      years),
+             cell_data$slot)
+
+fill <- function(values, mode = "integer") {
+  a <- array(if (mode == "integer") NA_integer_ else NA_real_,
+             dim = dims, dimnames = dnames)
+  a[idx] <- values
+  a
+}
+
+# ---------------------------------------------------------------------------
+# 1. Presence  [site, year, trap]
+# ---------------------------------------------------------------------------
+presence <- fill(as.integer(cell_data$catch > 0))
+
+# ---------------------------------------------------------------------------
+# 2. One indicator array per trap type, same shape, same NA pattern, bundled
+#    into a single named list written to TrapType.rds
+# ---------------------------------------------------------------------------
+trap_indicators <- lapply(
+  setNames(CANONICAL_TRAPS, CANONICAL_TRAPS),
+  function(tt) fill(as.integer(as.character(cell_data$trap_type) == tt))
 )
-idx <- cbind(
-  match(cell_data$site_name, sites),
-  match(cell_data$trap_type, traps),
-  match(cell_data$year, years)
-)
 
-traptype <- array(0L, dim = c(length(sites), length(traps), length(years)),
-                  dimnames = dnames)
-traptype[idx] <- as.integer(cell_data$effort > 0)
+# ---------------------------------------------------------------------------
+# 3. CPUE  [site, year] -- pooled catch / pooled effort over all trap types
+#    deployed in that site-year. NA where the site-year was never sampled.
+# ---------------------------------------------------------------------------
+pooled <- cell_data %>%
+  group_by(site_name, year) %>%
+  summarise(cpue = sum(catch) / sum(effort), .groups = "drop")
 
-presence <- array(0L, dim = dim(traptype), dimnames = dimnames(traptype))
-presence[idx] <- as.integer(
-  cell_data$effort > 0 & !is.na(cell_data$catch) & cell_data$catch > 0
-)
+cpue <- matrix(NA_real_, nrow = length(sites), ncol = length(years),
+               dimnames = list(site = sites, year = as.character(years)))
+cpue[cbind(match(pooled$site_name, sites),
+           match(pooled$year, years))] <- pooled$cpue
 
-cpue_fukui <- matrix(
-  NA_real_,
-  nrow = length(sites),
-  ncol = length(years),
-  dimnames = list(site = sites, year = as.character(years))
-)
-fukui <- cell_data %>%
-  filter(trap_type == "Fukui", effort > 0) %>%
-  mutate(cpue = catch / effort)
-cpue_fukui[cbind(
-  match(fukui$site_name, sites),
-  match(fukui$year, years)
-)] <- fukui$cpue
+# ---------------------------------------------------------------------------
+# Validation
+# ---------------------------------------------------------------------------
+assert_products_aligned <- function(presence, trap_indicators, cpue) {
+  used     <- !is.na(presence)
+  n_used   <- apply(used, c(1, 2), sum)   # slots used per site-year
+  stopifnot(
+    length(dim(presence)) == 3L,
+    identical(names(dimnames(presence)), c("site", "year", "trap")),
+    identical(names(dimnames(cpue)), c("site", "year")),
+    identical(dimnames(presence)$site, dimnames(cpue)$site),
+    identical(dimnames(presence)$year, dimnames(cpue)$year),
+    !anyDuplicated(dimnames(presence)$site),
+    !anyDuplicated(dimnames(presence)$year),
+    all(presence[used] %in% c(0L, 1L)),
+    # slots are filled from 1 upward with no gaps
+    all(apply(used, c(1, 2), function(z) all(diff(as.integer(z)) <= 0))),
+    # trap-type indicators share the NA pattern and are one-hot
+    all(vapply(trap_indicators,
+               function(a) identical(!is.na(a), used), logical(1))),
+    all(Reduce(`+`, trap_indicators)[used] == 1L),
+    # CPUE present exactly where the site-year was sampled
+    all(unname(!is.na(cpue)) == unname(n_used > 0L)),
+    all(is.na(cpue) | (is.finite(cpue) & cpue >= 0))
+  )
+  invisible(TRUE)
+}
 
-assert_model_products_aligned(presence, traptype, cpue_fukui)
+assert_products_aligned(presence, trap_indicators, cpue)
 
-output_files <- c(
-  presence = file.path(outdir, "PresenceArrayBinary.rds"),
-  traptype = file.path(outdir, "TrapTypeArraysNew.rds"),
-  cpue = file.path(outdir, "cpue_fukui.rds")
-)
-saveRDS(presence, output_files[["presence"]])
-saveRDS(traptype, output_files[["traptype"]])
-saveRDS(cpue_fukui, output_files[["cpue"]])
+# ---------------------------------------------------------------------------
+# Write
+# ---------------------------------------------------------------------------
+saveRDS(presence,        file.path(outdir, "PresenceArray.rds"))
+saveRDS(trap_indicators, file.path(outdir, "TrapType.rds"))
+saveRDS(cpue,            file.path(outdir, "cpue.rds"))
 
-# Re-read the serialized products and validate what downstream code will see.
-saved_presence <- readRDS(output_files[["presence"]])
-saved_traptype <- readRDS(output_files[["traptype"]])
-saved_cpue <- readRDS(output_files[["cpue"]])
-assert_model_products_aligned(saved_presence, saved_traptype, saved_cpue)
-
-message(
-  "Validated and saved: ", length(sites), " sites x ",
-  length(traps), " trap types x ", length(years), " years (",
-  min(years), "-", max(years), ")."
-)
-message("  PresenceArrayBinary.rds: ", sum(presence), " detections")
-message("  TrapTypeArraysNew.rds: ", sum(traptype), " sampled cells")
-message("  cpue_fukui.rds: ", sum(!is.na(cpue_fukui)),
-        " Fukui-sampled site-years")
+n_used <- apply(!is.na(presence), c(1, 2), sum)
+message("Saved [site, year, trap] = ", dims[1], " x ", dims[2], " x ", dims[3],
+        " (", min(years), "-", max(years), ").")
+message("  ", sum(!is.na(presence)), " used trap slots (site/year/trap-type records)")
+message("  ", sum(presence, na.rm = TRUE), " with EGC detected")
+message("  ", sum(n_used > 0L), " sampled site-years")
+message("  slots per site-year: ",
+        paste(names(table(n_used[n_used > 0L])), table(n_used[n_used > 0L]),
+              sep = "=", collapse = ", "))
