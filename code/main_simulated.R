@@ -2,39 +2,11 @@ library(nimble)
 library(MCMCvis)
 library(parallel)
 
-################
-# read in data #
-################
+#################
+# simulate data #
+#################
 
-cpue <- readRDS("data/model_data/cpue_fukui.rds")
-detections <- readRDS("data/model_data/PresenceArrayBinary.rds")
-type <- readRDS("data/model_data/TrapTypeArraysNew.rds")
-
-# get constants
-nyear <- dim(detections)[2]
-nsite <- dim(detections)[1]
-
-# get ntraps for each site/year
-ntraps <- matrix(NA, nrow = nsite, ncol = nyear)
-for (i in 1:nsite) {
-  for (t in 1:nyear) {
-    ntraps[i, t] <- sum(!is.na(detections[i, t,]))
-  }
-}
-
-# split up trap types
-type_M <- type$Minnow
-type_F <- type$Fukui
-type_S <- type$Shrimp
-
-# replace NA with 0
-detections[is.na(detections)] <- 0
-type_M[is.na(type_M)] <- 0
-type_F[is.na(type_F)] <- 0
-type_S[is.na(type_S)] <- 0
-
-# read in connectivity data
-conn_2018 <- read.csv("data/connectivity/_zones_yearly_connectivity_matrix_counts_2018.csv")
+source("simulate_data.R")
 
 
 ##############
@@ -46,9 +18,7 @@ model_code <- nimbleCode({
   # --- Priors ---
   
   # Probability of detection
-  p_minnow ~ dunif(0, 1)
-  p_fukui ~ dunif(0, 1)
-  p_shrimp ~ dunif(0, 1)
+  p ~ dunif(0, 1) 
   
   # Initial occupancy probability
   psi ~ dunif(0, 1)
@@ -86,13 +56,13 @@ model_code <- nimbleCode({
     for (t in 2:nYears) {
       
       # Probability of colonization
-      logit(gamma[i, t - 1]) <- colonization(CPUE[1:nSites, (t-1):t], 
+      logit(gamma[i, t - 1]) <- colonization_lp(CPUE[1:nSites, (t-1):t], 
                                                 beta0, beta1, beta2, 
                                                 C[i, 1:nSites, (t-1):t], 
                                                 i)
       
       # Probability of persistence
-      logit(epsilon[i, t - 1]) <- persistence(CPUE[i, t], beta3, beta4,
+      logit(epsilon[i, t - 1]) <- persistence_lp(CPUE[i, t], beta3, beta4,
                                                  C[i, i, t])
         
         # Occupancy state
@@ -109,10 +79,8 @@ model_code <- nimbleCode({
   # --- Observation model ---
   for (i in 1:nSites) {
     for (t in 1:nYears) {
-      for (j in 1:nTraps[i, t]) {
-        p[i, t, j] <- p_minnow * type_M[i, t, j] + p_fukui * type_F[i, t, j] +
-          p_shrimp * type_S[i, t, j] 
-        y[i, t, j] ~ dbern(z[i, t] * p[i, t, j])
+      for (j in 1:nTraps) {
+        y[i, t, j] ~ dbern(z[i, t] * p)
       }
     }
   }
@@ -121,13 +89,13 @@ model_code <- nimbleCode({
 
 # Package data and constants
 constants <- list(
-  nSites = nsites,
-  nYears = nyears,
-  nTraps = ntraps
+  nSites = nSites,
+  nYears = nYears,
+  nTraps = nTraps
 )
 
-data <- list(y = detections, # dimensions [sites, years, traps]
-             CPUE = cpue, # dimensions [sites, years + 1 year burnin]
+data <- list(y = y, # dimensions [sites, years, traps]
+             CPUE = CPUE, # dimensions [sites, years + 1 year burnin]
              larv_R = larv_R, # no. released larvae [sites, years + 1 year burnin]
              larv_S = larv_S # no. settled larvae [sites_rel, sites_set, years + 1 year burnin]
              ) 
@@ -143,17 +111,15 @@ for (i in 1:nSites) {
 }
 
 # Initial values
-inits  <- function(detections) {
+inits  <- function(y) {
   list(psi = runif(1, 0, 1),
        beta0 = runif(1, -1, 1),
        beta1 = runif(1, -1, 1),
        beta2 = runif(1, -1, 1),
        beta3 = runif(1, -1, 1),
        beta4 = runif(1, -1, 1),
-       p_minnow = runif(1, 0, 1),
-       p_fukui = runif(1, 0, 1),
-       p_shrimp = runif(1, 0, 1),
-       z = apply(detections, c(1, 2), max, na.rm = TRUE),
+       p = runif(1, 0, 1),
+       z = apply(y, c(1, 2), max, na.rm = TRUE),
        C = C)
 }
 
@@ -165,8 +131,7 @@ cl <- makeCluster(4)
 
 set.seed(10120)
 
-clusterExport(cl, c("model_code", "inits", "data", "constants", 
-                    "detections", "C"))
+clusterExport(cl, c("model_code", "inits", "data", "constants", "y", "C"))
 
 # parallelize running MCMC
 out <- clusterEvalQ(cl, {
@@ -174,7 +139,7 @@ out <- clusterEvalQ(cl, {
   library(coda)
   
   # Define nimbleFunctions directly on each worker
-  colonization <- nimbleFunction(
+  colonization_lp <- nimbleFunction(
     run = function(CPUE = double(2), beta0 = double(0), beta1 = double(0), 
                    beta2 = double(0), C = double(2), index = double(0))
     {
@@ -192,9 +157,9 @@ out <- clusterEvalQ(cl, {
       return(gamma)
     }
   )
-  assign("colonization", colonization, envir = .GlobalEnv)
+  assign("colonization_lp", colonization_lp, envir = .GlobalEnv)
   
-  persistence <- nimbleFunction(
+  persistence_lp <- nimbleFunction(
     run = function(CPUE = double(0), beta3 = double(0), beta4 = double(0), 
                    C = double(0))
     {
@@ -203,7 +168,7 @@ out <- clusterEvalQ(cl, {
       return(epsilon)
     }
   )
-  assign("persistence", persistence, envir = .GlobalEnv)
+  assign("persistence_lp", persistence_lp, envir = .GlobalEnv)
   
   # build model
   myModel <- nimbleModel(code = model_code,
