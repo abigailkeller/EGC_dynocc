@@ -6,13 +6,18 @@ library(parallel)
 # read in data #
 ################
 
-cpue <- readRDS("data/model_data/cpue_fukui.rds")
-detections <- readRDS("data/model_data/PresenceArrayBinary.rds")
+cpue <- readRDS("data/model_data/cpue_fukui.rds")[, 1:6]
+detections <- readRDS("data/model_data/PresenceArrayBinary.rds")[, 2:7, ]
 type <- readRDS("data/model_data/TrapTypeArraysNew.rds")
+zones <- read.csv("data/model_data/site_zone_map.csv")[, "zone_id"]
+
+# NA for Campbell Slough
+zones[29] <- 1
 
 # get constants
 nyear <- dim(detections)[2]
 nsite <- dim(detections)[1]
+nzone <- length(unique(zones))
 
 # get ntraps for each site/year
 ntraps <- matrix(NA, nrow = nsite, ncol = nyear)
@@ -21,6 +26,16 @@ for (i in 1:nsite) {
     ntraps[i, t] <- sum(!is.na(detections[i, t,]))
   }
 }
+
+# flatten observation data to vectors
+nObs <- sum(ntraps)
+obs_site <- rep(0, nObs)
+obs_year <- rep(0, nObs)
+obs_yM <- rep(0, nObs)
+obs_yF <- rep(0, nObs)
+obs_yS <- rep(0, nObs)
+
+
 
 # split up trap types
 type_M <- type$Minnow
@@ -34,7 +49,20 @@ type_F[is.na(type_F)] <- 0
 type_S[is.na(type_S)] <- 0
 
 # read in connectivity data
-conn_2018 <- read.csv("data/connectivity/_zones_yearly_connectivity_matrix_counts_2018.csv")
+larv_S <- array(data = NA, dim = c(nzone, nzone, nyear))
+conn_paths <- c("data/connectivity/_zones_yearly_connectivity_matrix_counts_2018.csv",
+                "data/connectivity/_zones_yearly_connectivity_matrix_counts_2019.csv",
+                "data/connectivity/_zones_yearly_connectivity_matrix_counts_2020.csv",
+                "data/connectivity/_zones_yearly_connectivity_matrix_counts_2021.csv",
+                "data/connectivity/_zones_yearly_connectivity_matrix_counts_2022.csv",
+                "data/connectivity/_zones_yearly_connectivity_matrix_counts_2023.csv",
+                "data/connectivity/_zones_yearly_connectivity_matrix_counts_2024.csv")
+for (i in 1:nyear) {
+  larv_S[1:nzone, 1:nzone, i] <- as.matrix(read.csv(conn_paths[i])[, 2:15])
+}
+
+# make arbitrary number of released
+larv_R <- matrix(400, nrow = nzone, ncol = nyear)
 
 
 ##############
@@ -72,10 +100,20 @@ model_code <- nimbleCode({
   }
   
   # --- Connectivity (random variable)
+  for (i in 1:nZones) {
+    for (t in 1:nYears) {
+      for (k in 1:nZones) {
+        larv_S[i, k, t] ~ dbinom(size = larv_R[i, t], prob = C[i, k, t])
+      }
+    }
+  }
+  
+  # --- expand latent zone-level C to site level ---
   for (i in 1:nSites) {
     for (t in 1:nYears) {
+      C_self[i, t] <- C[zones[i], zones[i], t] # within-zone (persistence)
       for (k in 1:nSites) {
-        larv_S[i, k, t] ~ dbinom(size = larv_R[i, t], prob = C[i, k, t])
+        C_site[i, k, t] <- C[zones[i], zones[k], t] # site-pair (colonization)
       }
     }
   }
@@ -87,13 +125,12 @@ model_code <- nimbleCode({
       
       # Probability of colonization
       logit(gamma[i, t - 1]) <- colonization(CPUE[1:nSites, (t-1):t], 
-                                                beta0, beta1, beta2, 
-                                                C[i, 1:nSites, (t-1):t], 
-                                                i)
+                                             beta0, beta1, beta2,
+                                             C_site[i, 1:nSites, (t-1):t], i)
       
       # Probability of persistence
-      logit(epsilon[i, t - 1]) <- persistence(CPUE[i, t], beta3, beta4,
-                                                 C[i, i, t])
+      logit(epsilon[i, t - 1]) <- persistence(CPUE[i, t], beta3, beta4, 
+                                              C_self[i, t])
         
         # Occupancy state
         z[i, t] ~ dbern(
@@ -109,10 +146,12 @@ model_code <- nimbleCode({
   # --- Observation model ---
   for (i in 1:nSites) {
     for (t in 1:nYears) {
-      for (j in 1:nTraps[i, t]) {
-        p[i, t, j] <- p_minnow * type_M[i, t, j] + p_fukui * type_F[i, t, j] +
-          p_shrimp * type_S[i, t, j] 
-        y[i, t, j] ~ dbern(z[i, t] * p[i, t, j])
+      if (nTraps[i, t] > 0) {
+        for (j in 1:nTraps[i, t]) {
+          p[i, t, j] <- p_minnow * type_M[i, t, j] + p_fukui * type_F[i, t, j] +
+            p_shrimp * type_S[i, t, j]
+          y[i, t, j] ~ dbern(z[i, t] * p[i, t, j])
+        }
       }
     }
   }
@@ -121,22 +160,27 @@ model_code <- nimbleCode({
 
 # Package data and constants
 constants <- list(
-  nSites = nsites,
-  nYears = nyears,
-  nTraps = ntraps
+  nSites = nsite,
+  nYears = nyear,
+  nTraps = ntraps,
+  nZones = nzone,
+  zones = as.integer(zones),
+  type_M = type_M,
+  type_F = type_F,
+  type_S = type_S
 )
 
 data <- list(y = detections, # dimensions [sites, years, traps]
              CPUE = cpue, # dimensions [sites, years + 1 year burnin]
-             larv_R = larv_R, # no. released larvae [sites, years + 1 year burnin]
-             larv_S = larv_S # no. settled larvae [sites_rel, sites_set, years + 1 year burnin]
+             larv_R = larv_R, # no. released larvae [zones, years + 1 year burnin]
+             larv_S = larv_S # no. settled larvae [zones_set, zones_rel, years + 1 year burnin]
              ) 
 
 # connectivity inits
-C <- array(NA, dim = c(nSites, nSites, nYears))
-for (i in 1:nSites) {
-  for (k in 1:nSites) {
-    for (t in 1:nYears) {
+C <- array(NA, dim = c(nzone, nzone, nyear))
+for (i in 1:nzone) {
+  for (k in 1:nzone) {
+    for (t in 1:nyear) {
       C[i, k, t] <- larv_S[i, k, t] / larv_R[i, t]
     }
   }
@@ -209,7 +253,7 @@ out <- clusterEvalQ(cl, {
   myModel <- nimbleModel(code = model_code,
                          data = data,
                          constants = constants,
-                         inits = inits(y))
+                         inits = inits(detections))
   
   
   # build the MCMC
