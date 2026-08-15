@@ -1,6 +1,7 @@
 library(nimble)
 library(MCMCvis)
 library(parallel)
+library(tidyverse)
 
 ################
 # read in data #
@@ -304,7 +305,7 @@ out <- clusterEvalQ(cl, {
   cmodel_mcmc <- compileNimble(myMCMC, project = myModel)
   
   # run MCMC
-  cmodel_mcmc$run(10000, thin = 10,
+  cmodel_mcmc$run(1000000, thin = 1000,
                   reset = FALSE)
   
   samples <- as.mcmc(as.matrix(cmodel_mcmc$mvSamples))
@@ -324,9 +325,3 @@ saveRDS(out_sub, "data/posterior_samples/posterior_samples.rds")
 
 stopCluster(cl)
 
-
-#####################
-# summarize samples #
-#####################
-
-# summmary <- MCMCsummary(out_sub)
