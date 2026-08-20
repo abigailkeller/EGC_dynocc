@@ -25,6 +25,11 @@
 #       dimensions and NA pattern as PresenceArrayBinary.rds
 #   cpue_fukui.rds
 #       Fukui catch per trap deployment, [site, year]
+#   cpue.rds
+#       Catch per trap deployment pooled across all three trap types
+#       (Fukui + Shrimp + Minnow), [site, year]. Same site/year coverage as
+#       PresenceArrayBinary.rds -- non-NA wherever that site-year has any
+#       used replicate, regardless of trap type.
 ################################################################################
 
 project_library <- file.path(getwd(), ".r-library")
@@ -276,11 +281,17 @@ make_cpue <- function(data) {
 }
 cpue_fukui <- make_cpue(filter(reps, trap_type == "Fukui"))
 
+# Pooled across all three trap types -- same site/year coverage as
+# PresenceArrayBinary, since it's built from the same `reps` with no
+# trap_type filter.
+cpue <- make_cpue(reps)
+
 # -----------------------------------------------------------------------------
 # Validation and serialization.
 # -----------------------------------------------------------------------------
 used <- !is.na(presence)
 n_used <- apply(used, c(1, 2), sum)
+site_year_used <- apply(used, c(1, 2), any)
 stopifnot(
   identical(names(dimnames(presence)), c("site", "year", "replicate")),
   all(presence[used] %in% c(0L, 1L)),
@@ -290,6 +301,8 @@ stopifnot(
   identical(dimnames(presence)[c("site", "year")], dimnames(cpue_fukui)),
   all(unname(!is.na(cpue_fukui)) ==
         unname(apply(trap_indicators$Fukui == 1L, c(1, 2), any, na.rm = TRUE))),
+  identical(dimnames(presence)[c("site", "year")], dimnames(cpue)),
+  identical(unname(!is.na(cpue)), unname(site_year_used)),
   all(reps$year >= FIRST_YEAR),
   all(reps$trap_type %in% CANONICAL_TRAPS)
 )
@@ -297,7 +310,8 @@ stopifnot(
 outputs <- list(
   PresenceArrayBinary = presence,
   TrapTypeArraysNew = trap_indicators,
-  cpue_fukui = cpue_fukui
+  cpue_fukui = cpue_fukui,
+  cpue = cpue
 )
 for (nm in names(outputs)) saveRDS(outputs[[nm]], file.path(outdir, paste0(nm, ".rds")))
 
