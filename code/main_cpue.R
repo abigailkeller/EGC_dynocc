@@ -135,14 +135,14 @@ model_code <- nimbleCode({
   beta0 ~ dunif(-10, 10)
   
   # Colonization coefficients
-  beta1 ~ dunif(-10, 10)
-  beta2 ~ dunif(-10, 10)
+  beta1 ~ dunif(-100, 100)
+  beta2 ~ dunif(-100, 100)
   
   # Persistence intercept
   beta3 ~ dunif(-10, 10)
   
   # Persistence coefficient
-  beta4 ~ dunif(-10, 10)
+  beta4 ~ dunif(-100, 100)
   
   # --- Initial occupancy (t = 1) ---
   for (i in 1:nSites) {

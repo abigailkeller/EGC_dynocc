@@ -3,13 +3,13 @@ library(tidyverse)
 library(patchwork)
 
 # read in samples
-samples <- readRDS("data/posterior_samples/posterior_samples_20260827.rds")
+samples <- readRDS("data/posterior_samples/posterior_samples_20260901.rds")
 
 # summarize
 summary <- MCMCsummary(samples)
 
 # trace plot
-param <- "beta2"
+param <- "beta1"
 
 ggplot() +
   geom_line(aes(x = 1:nrow(samples[[1]]), y = samples[[1]][, param]),
@@ -31,12 +31,18 @@ ggplot() +
   labs(x = "iteration", y = "value") +
   ggtitle(param)
 
-param1 <- "beta3"
-param2 <- "beta4"
+param1 <- "beta1"
+param2 <- "beta2"
 
 ggplot() + 
-  geom_point(aes(x = c(samples[[1]][, param1]),
-                 y = c(samples[[1]][, param2])))
+  geom_point(aes(x = c(samples[[1]][, param1], samples[[2]][, param1],
+                       samples[[3]][, param1], samples[[4]][, param1],
+                       samples[[5]][, param1], samples[[6]][, param1],
+                       samples[[7]][, param1], samples[[8]][, param1]),
+                 y = c(samples[[1]][, param2], samples[[2]][, param2],
+                       samples[[3]][, param2], samples[[4]][, param2],
+                       samples[[5]][, param2], samples[[6]][, param2],
+                       samples[[7]][, param2], samples[[8]][, param2])))
 
 
 # 
