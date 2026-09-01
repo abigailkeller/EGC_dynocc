@@ -71,7 +71,7 @@ obs_yM[is.na(obs_yM)] <- 0
 obs_yF[is.na(obs_yF)] <- 0
 obs_yS[is.na(obs_yS)] <- 0
 
-# read in connectivity data
+# read in connectivity data - larvae settled
 larv_S <- array(data = NA, dim = c(nzone, nzone, nyear))
 conn_paths <- c("data/connectivity/_zones_yearly_connectivity_matrix_counts_2018.csv",
                 "data/connectivity/_zones_yearly_connectivity_matrix_counts_2019.csv",
@@ -84,8 +84,9 @@ for (i in 1:nyear) {
   larv_S[1:nzone, 1:nzone, i] <- as.matrix(read.csv(conn_paths[i])[, 2:15])
 }
 
-# make arbitrary number of released
-larv_R <- matrix(400, nrow = nzone, ncol = nyear)
+# read in connectivity data - larvae settled
+larv_R <- as.matrix(read.csv("data/SpatialData/yearly_larvae_released.csv",
+                             row.names = 1)[, 6:11])
 
 
 ##############
@@ -108,8 +109,8 @@ model_code <- nimbleCode({
   beta0 ~ dunif(-10, 10)
   
   # Colonization coefficients
-  beta1 ~ dunif(-10, 10)
-  beta2 ~ dunif(-10, 10)
+  beta1 ~ dunif(-100, 100)
+  beta2 ~ dunif(-100, 100)
   
   # Persistence intercept
   beta3 ~ dunif(-10, 10)
@@ -232,7 +233,7 @@ inits  <- function() {
 # run MCMC in parallel #
 ########################
 
-cl <- makeCluster(4)
+cl <- makeCluster(8)
 
 set.seed(10120)
 
@@ -305,7 +306,9 @@ out <- clusterEvalQ(cl, {
   cmodel_mcmc <- compileNimble(myMCMC, project = myModel)
   
   # run MCMC
-  cmodel_mcmc$run(1000000, thin = 1000,
+  # cmodel_mcmc$run(1000000, thin = 1000,
+  #                 reset = FALSE)
+  cmodel_mcmc$run(100000, thin = 100,
                   reset = FALSE)
   
   samples <- as.mcmc(as.matrix(cmodel_mcmc$mvSamples))
@@ -318,10 +321,12 @@ lower <- 200
 upper <- dim(out[[1]])[1]
 sequence <- seq(lower, upper, 1)
 out_sub <- list(out[[1]][sequence, ], out[[2]][sequence, ],
-                out[[3]][sequence, ], out[[4]][sequence, ])
+                out[[3]][sequence, ], out[[4]][sequence, ],
+                out[[5]][sequence, ], out[[6]][sequence, ],
+                out[[7]][sequence, ], out[[8]][sequence, ])
 
 # save samples
-saveRDS(out_sub, "data/posterior_samples/posterior_samples.rds")
+saveRDS(out_sub, "data/posterior_samples/posterior_samples_20260826_2.rds")
 
 stopCluster(cl)
 

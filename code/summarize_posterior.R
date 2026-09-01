@@ -3,14 +3,13 @@ library(tidyverse)
 library(patchwork)
 
 # read in samples
-samples <- readRDS("data/posterior_samples/posterior_samples.rds")
+samples <- readRDS("data/posterior_samples/posterior_samples_20260827.rds")
 
 # summarize
 summary <- MCMCsummary(samples)
 
 # trace plot
-param <- "z[113, 5]"
-param <- "p_minnow"
+param <- "beta2"
 
 ggplot() +
   geom_line(aes(x = 1:nrow(samples[[1]]), y = samples[[1]][, param]),
@@ -20,9 +19,27 @@ ggplot() +
   geom_line(aes(x = 1:nrow(samples[[3]]), y = samples[[3]][, param]),
             color = "purple") +
   geom_line(aes(x = 1:nrow(samples[[4]]), y = samples[[4]][, param]),
-            color = "green") +
+            color = "green") + 
+  geom_line(aes(x = 1:nrow(samples[[5]]), y = samples[[5]][, param]),
+            color = "black") +
+  geom_line(aes(x = 1:nrow(samples[[6]]), y = samples[[6]][, param]),
+            color = "yellow") +
+  geom_line(aes(x = 1:nrow(samples[[7]]), y = samples[[7]][, param]),
+            color = "brown") +
+  geom_line(aes(x = 1:nrow(samples[[8]]), y = samples[[8]][, param]),
+            color = "orange") +
   labs(x = "iteration", y = "value") +
   ggtitle(param)
+
+param1 <- "beta3"
+param2 <- "beta4"
+
+ggplot() + 
+  geom_point(aes(x = c(samples[[1]][, param1]),
+                 y = c(samples[[1]][, param2])))
+
+
+# 
 
 
 ## Note: some Rhat > 1.1 (will discuss)
