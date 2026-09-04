@@ -135,14 +135,14 @@ model_code <- nimbleCode({
   beta0 ~ dunif(-10, 10)
   
   # Colonization coefficients
-  beta1 ~ dunif(-100, 100)
-  beta2 ~ dunif(-100, 100)
+  beta1 ~ dunif(0, 10)
+  beta2 ~ dunif(0, 10)
   
   # Persistence intercept
   beta3 ~ dunif(-10, 10)
   
   # Persistence coefficient
-  beta4 ~ dunif(-100, 100)
+  beta4 ~ dunif(0, 10)
   
   # --- Initial occupancy (t = 1) ---
   for (i in 1:nSites) {
@@ -166,12 +166,12 @@ model_code <- nimbleCode({
       # Probability of colonization
       logit(gamma[i, t - 1]) <- colonization(CPUE[1:nZones, (t-1):t], 
         beta0, beta1, beta2,
-        C[i, 1:nZones, (t-1):t], i)
+        C[i, 1:nZones, (t-1):t], i, Kscale)
       
       # Probability of persistence
       logit(epsilon[i, t - 1]) <- persistence(CPUE[i, t], 
         beta3, beta4, 
-        C[i, i, t])
+        C[i, i, t], Kscale)
     }
   }
   
@@ -202,6 +202,31 @@ model_code <- nimbleCode({
   
 })
 
+
+# connectivity inits
+C_hat <- array(NA, dim = c(nzone, nzone, nyear))
+for (i in 1:nzone) {
+  for (k in 1:nzone) {
+    for (t in 1:nyear) {
+      C_hat[i, k, t] <- larv_S[i, k, t] / larv_R[i, t]
+    }
+  }
+}
+
+# create scale for colonization calculation
+X <- matrix(NA, nzone, nyear)
+for (i in 1:nzone) for (t in 1:nyear) {
+  j <- setdiff(1:nzone, i)
+  X[i, t] <- sum(cpue[j, t] * C_hat[i, j, t])
+}
+Kscale <- sd(as.vector(X), na.rm = TRUE)
+
+# occupancy inits
+zobs <- apply(detections, c(1, 2), function(x) {
+  if (all(is.na(x))) 0 else max(x, na.rm = TRUE)
+})
+dimnames(zobs) <- NULL
+
 # Package data and constants
 constants <- list(
   nSites = nsite,
@@ -213,30 +238,15 @@ constants <- list(
   obs_yF = obs_yF,
   obs_yS = obs_yS,
   obs_site = obs_site,
-  obs_year = obs_year
+  obs_year = obs_year,
+  Kscale = Kscale
 )
 
 data <- list(y_long = y_long, # dimensions [sites, years, traps]
              CPUE = cpue, # dimensions [zones, years]
              larv_R = larv_R, # no. released larvae [zones, years]
              larv_S = larv_S # no. settled larvae [zones_set, zones_rel, years]
-             ) 
-
-# connectivity inits
-C <- array(NA, dim = c(nzone, nzone, nyear))
-for (i in 1:nzone) {
-  for (k in 1:nzone) {
-    for (t in 1:nyear) {
-      C[i, k, t] <- larv_S[i, k, t] / larv_R[i, t]
-    }
-  }
-}
-
-# occupancy inits
-zobs <- apply(detections, c(1, 2), function(x) {
-  if (all(is.na(x))) 0 else max(x, na.rm = TRUE)
-})
-dimnames(zobs) <- NULL
+) 
 
 # Initial values
 inits  <- function() {
@@ -250,7 +260,7 @@ inits  <- function() {
        p_fukui = runif(1, 0, 1),
        p_shrimp = runif(1, 0, 1),
        z = zobs,
-       C = C)
+       C = C_hat)
 }
 
 ########################
@@ -261,7 +271,8 @@ cl <- makeCluster(8)
 
 set.seed(10120)
 
-clusterExport(cl, c("model_code", "inits", "data", "constants", "C", "zobs"))
+clusterExport(cl, c("model_code", "inits", "data", "constants", 
+                    "C_hat", "zobs"))
 
 # parallelize running MCMC
 out <- clusterEvalQ(cl, {
@@ -272,7 +283,8 @@ out <- clusterEvalQ(cl, {
   colonization <- nimbleFunction(
     run = function(CPUE = double(2), 
                    beta0 = double(0), beta1 = double(0), 
-                   beta2 = double(0), C = double(2), index = double(0))
+                   beta2 = double(0), C = double(2), index = double(0),
+                   Kscale = double(0))
     {
       returnType(double(0))
       idx <- as.integer(index)
@@ -280,8 +292,8 @@ out <- clusterEvalQ(cl, {
       gamma <- 0
       for (j in 1:n) {
         if (j != idx) {
-          gamma <- gamma + CPUE[j, 2] * beta1 * C[j, 2] +
-            CPUE[j, 1] * beta2 * C[j, 1]
+          gamma <- gamma + CPUE[j, 2] * beta1 * C[j, 2] / Kscale +
+            CPUE[j, 1] * beta2 * C[j, 1] / Kscale
         }
       }
       gamma <- gamma + beta0
@@ -293,10 +305,10 @@ out <- clusterEvalQ(cl, {
   persistence <- nimbleFunction(
     run = function(CPUE = double(0), 
                    beta3 = double(0), beta4 = double(0), 
-                   C = double(0))
+                   C = double(0), Kscale = double(0))
     {
       returnType(double(0))
-      epsilon <- beta3 + CPUE * C * beta4
+      epsilon <- beta3 + CPUE * C * beta4 / Kscale
       return(epsilon)
     }
   )
@@ -313,7 +325,8 @@ out <- clusterEvalQ(cl, {
   mcmcConf_myModel <- configureMCMC(
     myModel,
     monitors = c("psi", "beta0", "beta1", "beta2", "beta3", "beta4", 
-                 "p_minnow", "p_fukui", "p_shrimp", "C", "z"),
+                 "p_minnow", "p_fukui", "p_shrimp", "C", "z",
+                 "gamma", "epsilon"),
     enableWAIC = TRUE
     )
   
@@ -347,7 +360,7 @@ out_sub <- list(out[[1]][sequence, ], out[[2]][sequence, ],
                 out[[7]][sequence, ], out[[8]][sequence, ])
 
 # save samples
-saveRDS(out_sub, "data/posterior_samples/posterior_samples_20260901.rds")
+saveRDS(out_sub, "data/posterior_samples/posterior_samples_20260902.rds")
 
 stopCluster(cl)
 

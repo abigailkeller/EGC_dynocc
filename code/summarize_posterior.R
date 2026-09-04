@@ -3,10 +3,10 @@ library(tidyverse)
 library(patchwork)
 
 # read in samples
-samples <- readRDS("data/posterior_samples/posterior_samples_20260901.rds")
+samples <- readRDS("data/posterior_samples/posterior_samples_20260902.rds")
 
 # summarize
-summary <- MCMCsummary(samples)
+summary2 <- MCMCsummary(samples)
 
 # trace plot
 param <- "beta1"
@@ -32,7 +32,7 @@ ggplot() +
   ggtitle(param)
 
 param1 <- "beta1"
-param2 <- "beta2"
+param2 <- "beta4"
 
 ggplot() + 
   geom_point(aes(x = c(samples[[1]][, param1], samples[[2]][, param1],
