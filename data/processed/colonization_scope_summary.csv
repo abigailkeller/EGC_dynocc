@@ -1,0 +1,10 @@
+"scope","sites","site_years","sites_with_2plus_years","adjacent_pairs","adjacent_00","adjacent_01_colonizations","adjacent_10_losses","adjacent_11_persistence","successive_visit_pairs","successive_01_detections"
+"Exact current model input: 2019-2024, zone 2 excluded",125,200,51,53,16,4,8,25,75,9
+"Combined data: 2018-2024, current extent, zone 2 excluded",194,577,112,340,265,14,19,42,383,26
+"Combined data: all years, current extent, zone 2 excluded",197,661,114,420,337,18,21,44,464,30
+"Combined data: 2014-2024, all connectivity zones",211,669,113,414,331,18,21,44,458,30
+"Combined data: all years, all connectivity zones",227,712,130,426,334,21,21,50,485,35
+"Combined data: all years, outside current extent",627,1010,173,220,44,20,13,143,383,38
+"Combined data: all years and locations, three focal trap types",856,1730,304,652,384,41,34,193,874,73
+"Combined data: all years and locations, all trap types",860,1736,304,655,386,42,34,193,876,73
+"Combined data: all years/locations, replicate-capable sources",793,1290,243,276,63,26,22,165,497,56

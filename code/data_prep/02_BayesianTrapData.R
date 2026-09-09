@@ -6,13 +6,14 @@
 # one actual trap deployment/pull, not a trap-type summary.
 #
 # Filters are applied before array construction:
-#   * year >= 2018
+#   * year >= 2014
 #   * summer (June-September), matching the existing workflow
 #   * Fukui, Shrimp, and Minnow traps only (including named variants)
 #   * sites within data/SpatialData/study_extent.shp
 #
 # WDFW, Makah, DNWR, and DFO have trap-level observations and are included.
-# WSG and Padilla are supplied only as aggregated effort/catch totals, and the
+# WSG is saved separately as event-level arrays by 02b_WSGEventData.R.
+# Padilla is supplied only as aggregated effort/catch totals, and the
 # Drayton objects do not identify which traps generated aggregated catches;
 # these sources cannot be converted honestly to replicate-level binary data and
 # are therefore excluded from this product.
@@ -42,7 +43,7 @@ if (!requireNamespace("here", quietly = TRUE)) {
 }
 here::i_am("code/data_prep/02_BayesianTrapData.R")
 
-FIRST_YEAR <- 2018L
+FIRST_YEAR <- 2014L
 SUMMER_MONTHS <- 6:9
 CANONICAL_TRAPS <- c("Fukui", "Shrimp", "Minnow")
 
@@ -184,7 +185,28 @@ read_dnwr_year <- function(year) {
     paste(effort[["TrapIDJoin"]], seq_len(nrow(effort)))
   )
 }
-dnwr_reps <- bind_rows(lapply(2018:2020, read_dnwr_year))
+# The earlier files use a different schema and trap identifier.
+effort_2017 <- read.csv(file.path(raw_dir, "DNWR", "DNWR_2017_effort2.csv"),
+                        stringsAsFactors = FALSE)
+catches_2017 <- read.csv(file.path(raw_dir, "DNWR", "DNWR_2017_catch2.csv"),
+                         stringsAsFactors = FALSE)
+counts_2017 <- catches_2017 %>% count(TrapID, name = "catch")
+effort_2017 <- left_join(effort_2017, counts_2017, by = "TrapID")
+effort_2017$catch[is.na(effort_2017$catch)] <- 0
+lon_2017 <- number(effort_2017$Longitude)
+site_2017 <- case_when(
+  lon_2017 < -123.18 ~ "Dungeness Spit Base",
+  lon_2017 > -123.16 & lon_2017 < -123.13 ~ "Graveyard Spit West (Channel)",
+  lon_2017 > -123.13 ~ "Graveyard Spit East (Lagoon)",
+  TRUE ~ NA_character_
+)
+dnwr_2017 <- standardize(
+  "DNWR", site_2017, 2017L,
+  format(as.Date(effort_2017$StartLocDate, "%m/%d/%Y"), "%m"),
+  effort_2017$TrapType, effort_2017$catch,
+  effort_2017$Latitude, effort_2017$Longitude, effort_2017$TrapID
+)
+dnwr_reps <- bind_rows(dnwr_2017, bind_rows(lapply(2018:2020, read_dnwr_year)))
 
 # -----------------------------------------------------------------------------
 # DFO: raw files can contain multiple species rows for the same physical trap.
@@ -246,7 +268,7 @@ reps <- reps %>%
 if (nrow(reps) == 0L) stop("No replicate records remain after spatial filtering.")
 
 sites <- sort(unique(reps$site))
-years <- sort(unique(reps$year))
+years <- seq.int(FIRST_YEAR, max(reps$year))
 nrep <- max(reps$replicate)
 dims <- c(length(sites), length(years), nrep)
 dnames <- list(site = sites, year = as.character(years),
@@ -309,3 +331,5 @@ message("  trap types: ", paste(names(table(reps$trap_type)), table(reps$trap_ty
                                 sep = "=", collapse = ", "))
 message("  sources: ", paste(names(table(reps$source)), table(reps$source),
                              sep = "=", collapse = ", "))
+
+source(here::here("code", "data_prep", "02b_WSGEventData.R"))
