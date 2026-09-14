@@ -1,5 +1,5 @@
 # Separate WSG observations in the same [site, year, replicate] format as
-# PresenceArrayBinary.rds. Here a replicate is a pooled sampling event.
+# PresenceArrayBinary.rds. Here a replicate is a calendar month (June-September).
 # Run after 02_BayesianTrapData.R (which also sources this script).
 local({
   suppressPackageStartupMessages({
@@ -34,38 +34,37 @@ local({
   points <- st_transform(st_as_sf(coords, coords = c("longitude", "latitude"),
                                   crs = 4326), st_crs(extent))
   keep <- points$site[lengths(st_intersects(points, extent)) > 0L]
+  months <- 6:9
   events <- events %>% filter(site %in% keep) %>%
-    arrange(site, year, date, raw_row) %>% group_by(site, year) %>%
-    mutate(replicate = row_number(), presence = as.integer(catch > 0)) %>% ungroup()
+    arrange(site, year, date, raw_row) %>%
+    mutate(replicate = match(month, months), presence = as.integer(catch > 0))
   if (!nrow(events)) stop("No WSG sampling events remain after filtering.")
+  # Pool all records in a site/year/month: any positive catch is a detection.
+  occasions <- events %>% group_by(site, year, month, replicate) %>%
+    summarise(presence = as.integer(any(presence == 1L)), .groups = "drop")
   sites <- sort(unique(events$site))
   dn <- list(site = sites, year = years,
-             replicate = as.character(seq_len(max(events$replicate))))
-  idx <- cbind(match(events$site, sites), match(events$year, years), events$replicate)
+             replicate = as.character(months))
+  idx <- cbind(match(occasions$site, sites), match(occasions$year, years),
+               occasions$replicate)
   fill <- function(values) {
     a <- array(NA_integer_, lengths(dn), dimnames = dn)
     a[idx] <- as.integer(values)
     a
   }
-  presence <- fill(events$presence)
-  effort <- fill(events$effort)
-  # The raw file supplies total effort only. Even six traps does not establish
-  # the 3 Minnow + 3 Fukui mix. Leave counts unknown pending protocol validation.
-  counts <- setNames(lapply(c("Fukui", "Shrimp", "Minnow"),
-                           function(x) fill(rep(NA_integer_, nrow(events)))),
-                     c("Fukui", "Shrimp", "Minnow"))
+  presence <- fill(occasions$presence)
+  # WSG uses a pooled monthly observation under the usual six-trap protocol
+  # (three Minnow + three Fukui). Retain recorded effort in the audit table;
+  # no separate effort or trap-type arrays are needed for this approach.
   stopifnot(identical(dimnames(presence)$year, dimnames(existing)$year),
-            sum(!is.na(presence)) == nrow(events),
-            sum(presence, na.rm = TRUE) == sum(events$catch > 0),
-            identical(is.na(presence), is.na(effort)),
+            sum(!is.na(presence)) == nrow(occasions),
+            sum(presence, na.rm = TRUE) == sum(occasions$presence),
             all(presence[!is.na(presence)] %in% 0:1))
-  saveRDS(presence, file.path(outdir, "WSGPresenceArrayBinary.rds"))
-  saveRDS(effort, file.path(outdir, "WSGTrapEffortArray.rds"))
-  saveRDS(counts, file.path(outdir, "WSGTrapCountArrays.rds"))
-  saveRDS(events, file.path(outdir, "WSGSamplingEvents.rds"))
-  write.csv(events, file.path(outdir, "WSGSamplingEvents.csv"), row.names = FALSE)
+  saveRDS(presence, file.path(outdir, "PresenceArrayBinary_WSG.rds"))
+  saveRDS(events, file.path(outdir, "SamplingEvents_WSG.rds"))
+  write.csv(events, file.path(outdir, "SamplingEvents_WSG.csv"), row.names = FALSE)
   message("Saved separate WSG [site, year, replicate] = ",
-          paste(dim(presence), collapse = " x "), "; ", nrow(events),
-          " events, ", sum(events$presence), " detections; ",
+          paste(dim(presence), collapse = " x "), "; ", nrow(occasions),
+          " monthly occasions, ", sum(occasions$presence), " detections; ",
           sum(events$effort != 6), " events with effort other than six.")
 })

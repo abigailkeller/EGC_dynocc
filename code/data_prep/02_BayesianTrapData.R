@@ -12,7 +12,7 @@
 #   * sites within data/SpatialData/study_extent.shp
 #
 # WDFW, Makah, DNWR, and DFO have trap-level observations and are included.
-# WSG is saved separately as event-level arrays by 02b_WSGEventData.R.
+# WSG is saved separately as monthly binary observations by 02b_WSGEventData.R.
 # Padilla is supplied only as aggregated effort/catch totals, and the
 # Drayton objects do not identify which traps generated aggregated catches;
 # these sources cannot be converted honestly to replicate-level binary data and

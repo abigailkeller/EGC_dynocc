@@ -10,17 +10,18 @@ the latest retained individual-trap year. Unsampled cells are `NA`, not zero.
   earlier available records, including the separate DNWR 2017 files, are included.
 - `TrapTypeArraysNew.rds`: matching individual-trap one-hot indicators.
 - `cpue_fukui.rds`: individual-trap Fukui CPUE by site and year.
-- `WSGPresenceArrayBinary.rds`: a **separate** binary array in the same layout.
-  A replicate is one raw sampling-event row; total catch greater than zero is 1.
-  Events are ordered by date and original row within each site/year.
-- `WSGTrapEffortArray.rds`: recorded total trap count in matching cells.
-- `WSGTrapCountArrays.rds`: named Fukui/Shrimp/Minnow arrays in the same layout,
-  currently `NA` because the raw file does not identify the trap mix. These are
-  counts, not the one-hot indicators used for individual traps. Confirm the
-  protocol before assigning three Minnow and three Fukui traps to an event;
-  some events have total effort other than six.
-- `WSGSamplingEvents.rds` / `.csv`: event records, dates, coordinates, source row,
-  catch, effort, and replicate indices for auditing and future spatial mapping.
+- `PresenceArrayBinary_WSG.rds`: a **separate** binary array in the same layout.
+  A replicate is a calendar month, with axis labels `6`, `7`, `8`, `9`
+  (June–September). Each site/year/month is 1 if any retained record has positive
+  catch, 0 if sampled with no detections, and `NA` if unsampled. Multiple records
+  in the same month are pooled into one observation.
+  The usual protocol is three Minnow plus three Fukui traps; separate effort
+  and trap-count arrays are no longer produced. Recorded effort remains in the
+  audit table because some events report fewer than six traps.
+- `SamplingEvents_WSG.rds` / `.csv`: event records, dates, coordinates, source row,
+  catch, effort, month, and replicate indices (1–4 for June–September) for
+  auditing and future spatial mapping. Rows remain raw events, so multiple rows
+  can map to the same monthly array cell.
 
 WSG site labels use `WSG::<SiteID>` to preserve the source's identifiers. The
 year axes match, but the site axes and maximum replicate counts differ between
@@ -29,7 +30,7 @@ row positions are not shared site identifiers.
 
 This change prepares data only. Existing fitting scripts still use positional
 year slices and connectivity inputs beginning in 2018. Update those selections,
-site/zone mappings, historical covariates, and add the pooled-event likelihood
-before fitting the extended joint model. WSG must use an event detection
+site/zone mappings, historical covariates, and add the pooled-month likelihood
+before fitting the extended joint model. WSG must use a monthly detection
 probability, not an individual-trap probability. The older summary script 01
 produces a different, aggregated product and is not an input to this workflow.
