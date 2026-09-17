@@ -22,6 +22,10 @@ the latest retained individual-trap year. Unsampled cells are `NA`, not zero.
   catch, effort, month, and replicate indices (1–4 for June–September) for
   auditing and future spatial mapping. Rows remain raw events, so multiple rows
   can map to the same monthly array cell.
+- `site_zone_map.csv`: zone assignments for the individual-trap site axis.
+- `site_zone_map_WSG.csv`: zone assignments for the separate WSG site axis,
+  including both the `WSG::<SiteID>` key and readable site name. Run
+  `Rscript code/data_prep/03_map_model_sites_to_zones.R` to rebuild both tables.
 
 WSG site labels use `WSG::<SiteID>` to preserve the source's identifiers. The
 year axes match, but the site axes and maximum replicate counts differ between
