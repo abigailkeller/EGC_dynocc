@@ -10,8 +10,8 @@ library(tidyverse)
 # 2014 - 2024
 
 cpue <- readRDS("data/model_data/cpue_zone_year.rds")[c(1, 3:14), 8:18]
-detections <- readRDS("data/model_data/PresenceArrayBinary.rds")#[, 2:7, ]
-detections_WSG <- readRDS("data/model_data/PresenceArrayBinary_WSG.rds")#[, 2:7, ]
+detections <- readRDS("data/model_data/PresenceArrayBinary.rds")
+detections_WSG <- readRDS("data/model_data/PresenceArrayBinary_WSG.rds")
 type <- readRDS("data/model_data/TrapTypeArraysNew.rds")
 zones <- read.csv("data/model_data/site_zone_map.csv")[, "zone_id"]
 wsg_zones <- read.csv("data/model_data/site_zone_map_WSG.csv")[, "zone_id"]
@@ -23,22 +23,6 @@ wsg_map <- read.csv("data/model_data/wsg_map.csv")
 
 # replace cpue NA with 0
 cpue[is.na(cpue)] <- 0
-
-##
-# get sites without traps
-##
-##
-
-# remove <- as.integer(which(apply(detections, 1, function(s) all(is.na(s)))))
-# remove_WSG <- as.integer(which(apply(detections_WSG, 1, 
-#                                      function(s) all(is.na(s)))))
-# 
-# # remove sites without traps
-# detections <- detections[-remove, , ]
-# zones <- zones[-remove]
-# detections_WSG <- detections_WSG[-remove_WSG, , ]
-# wsg_map <- wsg_map[-remove_WSG, , ]
-# wsg_zones <- wsg_zones[-remove_WSG]
 
 # split up trap types
 type_M <- type$Minnow#[-remove, 2:7, ]
@@ -291,10 +275,6 @@ for (i in 1:nzone) {
 }
 
 # occupancy inits
-# zobs <- apply(detections, c(1, 2), function(x) {
-#   if (all(is.na(x))) 0 else max(x, na.rm = TRUE)
-# })
-# dimnames(zobs) <- NULL
 zobs <- matrix(1, nrow = nsite_total, ncol = nyear)
 
 # Package data and constants
@@ -412,8 +392,6 @@ out <- clusterEvalQ(cl, {
   cmodel_mcmc <- compileNimble(myMCMC, project = myModel)
   
   # run MCMC
-  # cmodel_mcmc$run(1000000, thin = 1000,
-  #                 reset = FALSE)
   cmodel_mcmc$run(10000, thin = 10,
                   reset = FALSE)
   
