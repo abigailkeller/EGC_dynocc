@@ -21,6 +21,9 @@ wsg_map <- read.csv("data/model_data/wsg_map.csv")
 # clean data #
 ##############
 
+# replace cpue NA with 0
+cpue[is.na(cpue)] <- 0
+
 ##
 # get sites without traps
 ##
@@ -421,7 +424,7 @@ out <- clusterEvalQ(cl, {
   # run MCMC
   # cmodel_mcmc$run(1000000, thin = 1000,
   #                 reset = FALSE)
-  cmodel_mcmc$run(100000, thin = 100,
+  cmodel_mcmc$run(10000, thin = 10,
                   reset = FALSE)
   
   samples <- as.mcmc(as.matrix(cmodel_mcmc$mvSamples))
@@ -439,7 +442,7 @@ out_sub <- list(out[[1]][sequence, ], out[[2]][sequence, ],
                 out[[7]][sequence, ], out[[8]][sequence, ])
 
 # save samples
-saveRDS(out_sub, "data/posterior_samples/posterior_samples_20260902.rds")
+saveRDS(out_sub, "data/posterior_samples/posterior_samples_20260917_short.rds")
 
 stopCluster(cl)
 
