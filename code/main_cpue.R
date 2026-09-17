@@ -9,6 +9,7 @@ library(tidyverse)
 
 cpue <- readRDS("data/model_data/cpue_zone_year.rds")[c(1, 3:14), 13:18]
 detections <- readRDS("data/model_data/PresenceArrayBinary.rds")[, 2:7, ]
+detections_WSG <- readRDS("data/model_data/PresenceArrayBinary_WSG.rds")[, 2:7, ]
 type <- readRDS("data/model_data/TrapTypeArraysNew.rds")
 zones <- read.csv("data/model_data/site_zone_map.csv")[, "zone_id"]
 
@@ -194,10 +195,16 @@ model_code <- nimbleCode({
   }
   
   # --- Observation model ---
+  # trap-level data
   for (o in 1:nObs) {
     p_long[o] <- p_minnow * obs_yM[o] + p_fukui * obs_yF[o] + 
       p_shrimp * obs_yS[o]
     y_long[o] ~ dbern(z[obs_site[o], obs_year[o]] * p_long[o])
+  }
+  # aggregated WSG data
+  p_star = 1 - (1 - p_minnow) ^ 3 * (1 - p_fukui) ^ 3
+  for (o in 1:nObs) {
+    y_WSG[o] ~ dbern(z[obs_site_WSG[o], obs_year_WSG[o]] * p_star)
   }
   
 })
