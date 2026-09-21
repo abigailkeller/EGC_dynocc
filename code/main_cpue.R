@@ -70,7 +70,7 @@ wsg_zones[which(wsg_zones == 14)] <- 2
 # get constants
 nyear <- dim(detections)[2]
 nsite <- dim(detections)[1]
-nzone <- length(unique(zones))
+nzone <- length(rows_kept)
 nyear_wsg <- dim(detections_WSG)[2]
 nsite_wsg <- dim(detections_WSG)[1]
 

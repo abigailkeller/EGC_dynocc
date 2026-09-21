@@ -3,17 +3,25 @@ library(tidyverse)
 library(patchwork)
 
 # read in samples
-samples <- readRDS("data/posterior_samples/posterior_samples_20260917_short.rds")
-samples_new <- readRDS("data/posterior_samples/posterior_samples_20260917_noscale.rds")
-samples_old <- readRDS("data/posterior_samples/model_selection/model1.rds")
+samples1 <- readRDS("data/posterior_samples/posterior_samples_rescale1.rds")
+samples2 <- readRDS("data/posterior_samples/posterior_samples_rescale2.rds")
+samples3 <- readRDS("data/posterior_samples/posterior_samples_rescale3.rds")
+samples4 <- readRDS("data/posterior_samples/posterior_samples_rescale4.rds")
 
 # summarize
-summary <- MCMCsummary(samples)
-summary_old <- MCMCsummary(samples_old)
-summary_new <- MCMCsummary(samples_new)
+summary1 <- MCMCsummary(samples1)
+summary2 <- MCMCsummary(samples2)
+summary3 <- MCMCsummary(samples3)
+summary4 <- MCMCsummary(samples4)
+
+# covariates
+summary1[c("beta0", "beta1", "beta2", "beta3"), ]
+summary2[c("beta0", "beta1", "beta2", "beta3"), ]
+summary3[c("beta0", "beta1", "beta2", "beta3"), ]
+summary4[c("beta0", "beta1", "beta2"), ]
 
 # trace plot
-param <- "beta2"
+param <- "beta1"
 
 ggplot() +
   geom_line(aes(x = 1:nrow(samples[[1]]), y = samples[[1]][, param]),

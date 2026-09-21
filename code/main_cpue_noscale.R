@@ -24,6 +24,22 @@ wsg_map <- read.csv("data/model_data/wsg_map.csv")
 # replace cpue NA with 0
 cpue[is.na(cpue)] <- 0
 
+##
+# get sites without traps
+##
+##
+
+# remove <- as.integer(which(apply(detections, 1, function(s) all(is.na(s)))))
+# remove_WSG <- as.integer(which(apply(detections_WSG, 1, 
+#                                      function(s) all(is.na(s)))))
+# 
+# # remove sites without traps
+# detections <- detections[-remove, , ]
+# zones <- zones[-remove]
+# detections_WSG <- detections_WSG[-remove_WSG, , ]
+# wsg_map <- wsg_map[-remove_WSG, , ]
+# wsg_zones <- wsg_zones[-remove_WSG]
+
 # split up trap types
 type_M <- type$Minnow#[-remove, 2:7, ]
 type_F <- type$Fukui#[-remove, 2:7, ]
@@ -47,9 +63,11 @@ type_M <- type_M[-zone2, , ]
 type_F <- type_F[-zone2, , ]
 type_S <- type_S[-zone2, , ]
 
-# replace zone 14 with zone 2
-zones[which(zones == 14)] <- 2
-wsg_zones[which(wsg_zones == 14)] <- 2
+# update zone order
+rows_kept  <- c(1, 3:14) 
+zone_index <- setNames(seq_along(rows_kept), rows_kept)
+zones <- unname(zone_index[as.character(zones)])
+wsg_zones <- unname(zone_index[as.character(wsg_zones)])
 
 # get constants
 nyear <- dim(detections)[2]
@@ -169,6 +187,13 @@ for (i in 1:nyear) {
 larv_R <- as.matrix(read.csv("data/SpatialData/yearly_larvae_released.csv",
                              row.names = 1)[c(1, 3:14), 1:11])
 
+imm <- ret <- matrix(0, nzone, nyear)
+for (i in 1:nzone) for (t in 1:nyear) {
+  imm[i, t] <- sum(larv_S[i, setdiff(1:nzone, i), t])   # immigrant settlers into zone i
+  ret[i, t] <- larv_S[i, i, t]                          # locally retained settlers
+}
+zscale <- function(m) { l <- log1p(m); (l - mean(l)) / sd(l) }
+z_imm <- zscale(imm); z_ret <- zscale(ret); z_cpue <- zscale(as.matrix(cpue))
 
 ##############
 # model code #
@@ -211,7 +236,7 @@ model_code <- nimbleCode({
         
         # probability of connectivity
         C[i, k, t] ~ dbeta(1, 1)
-        larv_S[i, k, t] ~ dbinom(prob = C[i, k, t], size = larv_R[i, t])
+        larv_S[i, k, t] ~ dbinom(prob = C[i, k, t], size = larv_R[k, t])
         
       }
     }
@@ -269,7 +294,7 @@ C_hat <- array(NA, dim = c(nzone, nzone, nyear))
 for (i in 1:nzone) {
   for (k in 1:nzone) {
     for (t in 1:nyear) {
-      C_hat[i, k, t] <- larv_S[i, k, t] / larv_R[i, t]
+      C_hat[i, k, t] <- larv_S[i, k, t] / larv_R[k, t]
     }
   }
 }
@@ -410,7 +435,7 @@ out_sub <- list(out[[1]][sequence, ], out[[2]][sequence, ],
                 out[[7]][sequence, ], out[[8]][sequence, ])
 
 # save samples
-saveRDS(out_sub, "data/posterior_samples/posterior_samples_20260917_noscale.rds")
+saveRDS(out_sub, "data/posterior_samples/posterior_samples_20260919_noscale.rds")
 
 stopCluster(cl)
 
