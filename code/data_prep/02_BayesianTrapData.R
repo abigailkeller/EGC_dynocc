@@ -9,7 +9,8 @@
 #   * year >= 2014
 #   * summer (June-September), matching the existing workflow
 #   * Fukui, Shrimp, and Minnow traps only (including named variants)
-#   * sites within data/SpatialData/study_extent.shp
+#   * original products: sites within data/SpatialData/study_extent.shp
+#   * `_expanded` products: all sites with usable coordinates
 #
 # WDFW, Makah, DNWR, and DFO have trap-level observations and are included.
 # WSG is saved separately as monthly binary observations by 02b_WSGEventData.R.
@@ -19,12 +20,12 @@
 # are therefore excluded from this product.
 #
 # Outputs in data/model_data (original filenames retained):
-#   PresenceArrayBinary.rds
+#   PresenceArrayBinary.rds / PresenceArrayBinary_expanded.rds
 #       integer [site, year, replicate]: 1 detected, 0 not detected, NA unused
-#   TrapTypeArraysNew.rds
+#   TrapTypeArraysNew.rds / TrapTypeArraysNew_expanded.rds
 #       named list of Fukui/Shrimp/Minnow one-hot integer arrays with the same
 #       dimensions and NA pattern as PresenceArrayBinary.rds
-#   cpue_fukui.rds
+#   cpue_fukui.rds / cpue_fukui_expanded.rds
 #       Fukui catch per trap deployment, [site, year]
 ################################################################################
 
@@ -46,6 +47,7 @@ here::i_am("code/data_prep/02_BayesianTrapData.R")
 FIRST_YEAR <- 2014L
 SUMMER_MONTHS <- 6:9
 CANONICAL_TRAPS <- c("Fukui", "Shrimp", "Minnow")
+EXCLUDED_SITES <- c("DFO::possibleGPSerror")
 
 raw_dir <- here::here("data", "raw")
 extent_file <- here::here("data", "SpatialData", "study_extent.shp")
@@ -239,14 +241,17 @@ dfo_reps <- standardize(
 )
 
 # -----------------------------------------------------------------------------
-# Combine, apply spatial filter, and assign consecutive replicate slots.
+# Combine records and classify sites relative to the original spatial extent.
 # -----------------------------------------------------------------------------
 reps <- bind_rows(wdfw_old_reps, wdfw_new_reps, makah_reps, dnwr_reps, dfo_reps)
+reps <- reps %>% filter(!site %in% EXCLUDED_SITES)
 if (nrow(reps) == 0L) stop("No replicate records remain after source filters.")
 
 site_points <- reps %>%
   group_by(site) %>%
   summarise(
+    source = first(source),
+    site_name = first(site_name),
     latitude = if (all(!is.finite(latitude))) NA_real_ else mean(latitude[is.finite(latitude)]),
     longitude = if (all(!is.finite(longitude))) NA_real_ else mean(longitude[is.finite(longitude)]),
     .groups = "drop"
@@ -257,79 +262,141 @@ extent <- st_make_valid(st_read(extent_file, quiet = TRUE))
 site_sf <- st_as_sf(site_points, coords = c("longitude", "latitude"),
                     crs = 4326, remove = FALSE) %>%
   st_transform(st_crs(extent))
-sites_in_extent <- site_sf$site[lengths(st_intersects(site_sf, extent)) > 0L]
+site_points$in_study_extent <- lengths(st_intersects(site_sf, extent)) > 0L
 
-reps <- reps %>%
-  filter(site %in% sites_in_extent) %>%
-  arrange(site, year, order_key, trap_type) %>%
-  group_by(site, year) %>%
-  mutate(replicate = row_number()) %>%
-  ungroup()
-if (nrow(reps) == 0L) stop("No replicate records remain after spatial filtering.")
+site_coordinates <- site_points %>%
+  transmute(
+    source, site, site_name,
+    x = longitude, y = latitude,
+    in_study_extent
+  ) %>%
+  arrange(source, site_name)
+write.csv(site_coordinates,
+          file.path(outdir, "site_coordinates_individual_traps.csv"),
+          row.names = FALSE)
 
-sites <- sort(unique(reps$site))
-years <- seq.int(FIRST_YEAR, max(reps$year))
-nrep <- max(reps$replicate)
-dims <- c(length(sites), length(years), nrep)
-dnames <- list(site = sites, year = as.character(years),
-               replicate = as.character(seq_len(nrep)))
-idx <- cbind(match(reps$site, sites), match(reps$year, years), reps$replicate)
-
-fill_integer <- function(values) {
-  out <- array(NA_integer_, dim = dims, dimnames = dnames)
-  out[idx] <- as.integer(values)
-  out
+prepare_replicates <- function(data, retained_sites) {
+  data %>%
+    filter(site %in% retained_sites) %>%
+    arrange(site, year, order_key, trap_type) %>%
+    group_by(site, year) %>%
+    mutate(replicate = row_number()) %>%
+    ungroup()
 }
 
-presence <- fill_integer(reps$presence)
-trap_indicators <- lapply(
-  setNames(CANONICAL_TRAPS, CANONICAL_TRAPS),
-  function(tt) fill_integer(reps$trap_type == tt)
-)
+build_model_products <- function(data, suffix = "", label) {
+  if (nrow(data) == 0L) stop("No ", label, " records remain after filtering.")
 
-make_cpue <- function(data) {
-  pooled <- data %>%
+  sites <- sort(unique(data$site))
+  years <- seq.int(FIRST_YEAR, max(data$year))
+  nrep <- max(data$replicate)
+  dims <- c(length(sites), length(years), nrep)
+  dnames <- list(site = sites, year = as.character(years),
+                 replicate = as.character(seq_len(nrep)))
+  idx <- cbind(match(data$site, sites), match(data$year, years), data$replicate)
+
+  fill_integer <- function(values) {
+    out <- array(NA_integer_, dim = dims, dimnames = dnames)
+    out[idx] <- as.integer(values)
+    out
+  }
+
+  presence <- fill_integer(data$presence)
+  trap_indicators <- lapply(
+    setNames(CANONICAL_TRAPS, CANONICAL_TRAPS),
+    function(tt) fill_integer(data$trap_type == tt)
+  )
+
+  fukui <- filter(data, trap_type == "Fukui") %>%
     group_by(site, year) %>%
     summarise(cpue = sum(catch) / n(), .groups = "drop")
-  out <- matrix(NA_real_, nrow = length(sites), ncol = length(years),
-                dimnames = list(site = sites, year = as.character(years)))
-  out[cbind(match(pooled$site, sites), match(pooled$year, years))] <- pooled$cpue
-  out
+  cpue_fukui <- matrix(
+    NA_real_, nrow = length(sites), ncol = length(years),
+    dimnames = list(site = sites, year = as.character(years))
+  )
+  cpue_fukui[cbind(match(fukui$site, sites), match(fukui$year, years))] <- fukui$cpue
+
+  used <- !is.na(presence)
+  stopifnot(
+    identical(names(dimnames(presence)), c("site", "year", "replicate")),
+    all(presence[used] %in% c(0L, 1L)),
+    all(apply(used, c(1, 2), function(z) all(diff(as.integer(z)) <= 0))),
+    all(vapply(trap_indicators, function(a) identical(!is.na(a), used), logical(1))),
+    all(Reduce(`+`, trap_indicators)[used] == 1L),
+    identical(dimnames(presence)[c("site", "year")], dimnames(cpue_fukui)),
+    all(unname(!is.na(cpue_fukui)) ==
+          unname(apply(trap_indicators$Fukui == 1L, c(1, 2), any, na.rm = TRUE))),
+    all(data$year >= FIRST_YEAR),
+    all(data$trap_type %in% CANONICAL_TRAPS),
+    sum(!is.na(presence)) == nrow(data),
+    sum(presence, na.rm = TRUE) == sum(data$presence)
+  )
+
+  outputs <- list(
+    PresenceArrayBinary = presence,
+    TrapTypeArraysNew = trap_indicators,
+    cpue_fukui = cpue_fukui
+  )
+  for (nm in names(outputs)) {
+    saveRDS(outputs[[nm]], file.path(outdir, paste0(nm, suffix, ".rds")))
+  }
+
+  message("Saved ", label, " [site, year, replicate] = ",
+          paste(dims, collapse = " x "), " (", min(years), "-", max(years), ").")
+  message("  ", nrow(data), " actual trap replicates; ",
+          sum(presence, na.rm = TRUE), " detection-positive replicates")
+  message("  trap types: ", paste(names(table(data$trap_type)), table(data$trap_type),
+                                  sep = "=", collapse = ", "))
+  message("  sources: ", paste(names(table(data$source)), table(data$source),
+                               sep = "=", collapse = ", "))
+
+  invisible(c(outputs, list(replicates = data)))
 }
-cpue_fukui <- make_cpue(filter(reps, trap_type == "Fukui"))
 
-# -----------------------------------------------------------------------------
-# Validation and serialization.
-# -----------------------------------------------------------------------------
-used <- !is.na(presence)
-n_used <- apply(used, c(1, 2), sum)
+inside_sites <- site_points$site[site_points$in_study_extent]
+all_coordinate_sites <- site_points$site
+reps_original <- prepare_replicates(reps, inside_sites)
+reps_expanded <- prepare_replicates(reps, all_coordinate_sites)
+
+original_products <- build_model_products(reps_original, label = "original")
+expanded_products <- build_model_products(
+  reps_expanded, suffix = "_expanded", label = "expanded"
+)
+
+# The expanded arrays must contain the original values unchanged at every
+# original site/year/replicate coordinate.
+original_site_index <- match(dimnames(original_products$PresenceArrayBinary)$site,
+                             dimnames(expanded_products$PresenceArrayBinary)$site)
 stopifnot(
-  identical(names(dimnames(presence)), c("site", "year", "replicate")),
-  all(presence[used] %in% c(0L, 1L)),
-  all(apply(used, c(1, 2), function(z) all(diff(as.integer(z)) <= 0))),
-  all(vapply(trap_indicators, function(a) identical(!is.na(a), used), logical(1))),
-  all(Reduce(`+`, trap_indicators)[used] == 1L),
-  identical(dimnames(presence)[c("site", "year")], dimnames(cpue_fukui)),
-  all(unname(!is.na(cpue_fukui)) ==
-        unname(apply(trap_indicators$Fukui == 1L, c(1, 2), any, na.rm = TRUE))),
-  all(reps$year >= FIRST_YEAR),
-  all(reps$trap_type %in% CANONICAL_TRAPS)
+  !anyNA(original_site_index),
+  identical(
+    original_products$PresenceArrayBinary,
+    expanded_products$PresenceArrayBinary[
+      original_site_index,
+      dimnames(original_products$PresenceArrayBinary)$year,
+      dimnames(original_products$PresenceArrayBinary)$replicate,
+      drop = FALSE
+    ]
+  ),
+  identical(
+    original_products$cpue_fukui,
+    expanded_products$cpue_fukui[
+      original_site_index,
+      dimnames(original_products$cpue_fukui)[[2]],
+      drop = FALSE
+    ]
+  )
 )
-
-outputs <- list(
-  PresenceArrayBinary = presence,
-  TrapTypeArraysNew = trap_indicators,
-  cpue_fukui = cpue_fukui
-)
-for (nm in names(outputs)) saveRDS(outputs[[nm]], file.path(outdir, paste0(nm, ".rds")))
-
-message("Saved [site, year, replicate] = ", paste(dims, collapse = " x "),
-        " (", min(years), "-", max(years), ").")
-message("  ", nrow(reps), " actual trap replicates; ", sum(presence, na.rm = TRUE),
-        " detection-positive replicates")
-message("  trap types: ", paste(names(table(reps$trap_type)), table(reps$trap_type),
-                                sep = "=", collapse = ", "))
-message("  sources: ", paste(names(table(reps$source)), table(reps$source),
-                             sep = "=", collapse = ", "))
+for (trap_name in CANONICAL_TRAPS) {
+  stopifnot(identical(
+    original_products$TrapTypeArraysNew[[trap_name]],
+    expanded_products$TrapTypeArraysNew[[trap_name]][
+      original_site_index,
+      dimnames(original_products$PresenceArrayBinary)$year,
+      dimnames(original_products$PresenceArrayBinary)$replicate,
+      drop = FALSE
+    ]
+  ))
+}
 
 source(here::here("code", "data_prep", "02b_WSGEventData.R"))

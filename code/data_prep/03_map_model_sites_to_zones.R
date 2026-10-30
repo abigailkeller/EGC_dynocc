@@ -114,9 +114,6 @@ map_sites_to_zones <- function(site_data, model_sites, dataset_label) {
   site_zone_map
 }
 
-model_sites <- dimnames(readRDS(here::here(
-  "data", "model_data", "PresenceArrayBinary.rds"
-)))$site
 site_data <- prep_env$reps %>%
   group_by(site) %>%
   summarise(
@@ -124,36 +121,49 @@ site_data <- prep_env$reps %>%
     longitude = mean(longitude[is.finite(longitude)]),
     .groups = "drop"
   )
-site_zone_map <- map_sites_to_zones(site_data, model_sites, "Model")
 
-wsg_presence <- readRDS(here::here(
-  "data", "model_data", "PresenceArrayBinary_WSG.rds"
-))
-wsg_sites <- dimnames(wsg_presence)$site
-wsg_events <- readRDS(here::here(
-  "data", "model_data", "SamplingEvents_WSG.rds"
-))
-stopifnot(all(
-  wsg_events %>% group_by(site) %>% summarise(n = n_distinct(site_name)) %>%
-    pull(n) == 1L
-))
-wsg_site_data <- wsg_events %>%
-  group_by(site) %>%
-  summarise(
-    site_name = first(site_name),
-    latitude = mean(latitude[is.finite(latitude)]),
-    longitude = mean(longitude[is.finite(longitude)]),
-    .groups = "drop"
+build_zone_maps <- function(suffix = "", label) {
+  model_sites <- dimnames(readRDS(here::here(
+    "data", "model_data", paste0("PresenceArrayBinary", suffix, ".rds")
+  )))$site
+  site_zone_map <- map_sites_to_zones(site_data, model_sites,
+                                      paste(label, "model"))
+
+  wsg_presence <- readRDS(here::here(
+    "data", "model_data", paste0("PresenceArrayBinary_WSG", suffix, ".rds")
+  ))
+  wsg_sites <- dimnames(wsg_presence)$site
+  wsg_events <- readRDS(here::here(
+    "data", "model_data", paste0("SamplingEvents_WSG", suffix, ".rds")
+  ))
+  stopifnot(all(
+    wsg_events %>% group_by(site) %>% summarise(n = n_distinct(site_name)) %>%
+      pull(n) == 1L
+  ))
+  wsg_site_data <- wsg_events %>%
+    group_by(site) %>%
+    summarise(
+      site_name = first(site_name),
+      latitude = mean(latitude[is.finite(latitude)]),
+      longitude = mean(longitude[is.finite(longitude)]),
+      .groups = "drop"
+    )
+  wsg_site_zone_map <- map_sites_to_zones(wsg_site_data, wsg_sites,
+                                          paste(label, "WSG"))
+
+  outputs <- list(
+    site_zone_map = site_zone_map,
+    site_zone_map_WSG = wsg_site_zone_map
   )
-wsg_site_zone_map <- map_sites_to_zones(wsg_site_data, wsg_sites, "WSG")
-
-outputs <- list(
-  site_zone_map = site_zone_map,
-  site_zone_map_WSG = wsg_site_zone_map
-)
-for (nm in names(outputs)) {
-  output_file <- here::here("data", "model_data", paste0(nm, ".csv"))
-  write.csv(outputs[[nm]], output_file, row.names = FALSE)
-  message("Saved ", nrow(outputs[[nm]]), " site-to-zone mappings to ",
-          output_file)
+  for (nm in names(outputs)) {
+    output_file <- here::here(
+      "data", "model_data", paste0(nm, suffix, ".csv")
+    )
+    write.csv(outputs[[nm]], output_file, row.names = FALSE)
+    message("Saved ", nrow(outputs[[nm]]), " ", label,
+            " site-to-zone mappings to ", output_file)
+  }
 }
+
+build_zone_maps(label = "original")
+build_zone_maps(suffix = "_expanded", label = "expanded")

@@ -24,8 +24,10 @@ local({
                is.finite(catch), catch >= 0,
                is.finite(effort), effort > 0)
   stopifnot(!anyNA(events$date), all(events$effort == floor(events$effort)))
-  # Same spatial rule as the individual-trap data: mean coordinates per site.
+  # Same expanded spatial rule as the individual-trap data: retain every site
+  # with usable mean coordinates and record study-extent membership for audit.
   coords <- events %>% group_by(site) %>% summarise(
+    source = first(source), site_name = first(site_name),
     latitude = mean(latitude, na.rm = TRUE),
     longitude = mean(longitude, na.rm = TRUE), .groups = "drop"
   ) %>% filter(is.finite(latitude), is.finite(longitude))
@@ -33,38 +35,82 @@ local({
     here::here("data", "SpatialData", "study_extent.shp"), quiet = TRUE))
   points <- st_transform(st_as_sf(coords, coords = c("longitude", "latitude"),
                                   crs = 4326), st_crs(extent))
-  keep <- points$site[lengths(st_intersects(points, extent)) > 0L]
+  coords$in_study_extent <- lengths(st_intersects(points, extent)) > 0L
+  wsg_site_coordinates <- coords %>%
+    transmute(source, site, site_name, x = longitude, y = latitude,
+              in_study_extent) %>%
+    arrange(site_name)
+  write.csv(wsg_site_coordinates,
+            file.path(outdir, "site_coordinates_WSG.csv"), row.names = FALSE)
+  individual_site_coordinates <- read.csv(
+    file.path(outdir, "site_coordinates_individual_traps.csv"),
+    stringsAsFactors = FALSE
+  )
+  expanded_site_coordinates <- bind_rows(
+    individual_site_coordinates, wsg_site_coordinates
+  ) %>% arrange(source, site_name)
+  write.csv(expanded_site_coordinates,
+            file.path(outdir, "site_coordinates_expanded.csv"),
+            row.names = FALSE)
+  write.csv(filter(expanded_site_coordinates, !in_study_extent),
+            file.path(outdir, "site_coordinates_outside_extent.csv"),
+            row.names = FALSE)
   months <- 6:9
-  events <- events %>% filter(site %in% keep) %>%
-    arrange(site, year, date, raw_row) %>%
-    mutate(replicate = match(month, months), presence = as.integer(catch > 0))
-  if (!nrow(events)) stop("No WSG sampling events remain after filtering.")
-  # Pool all records in a site/year/month: any positive catch is a detection.
-  occasions <- events %>% group_by(site, year, month, replicate) %>%
-    summarise(presence = as.integer(any(presence == 1L)), .groups = "drop")
-  sites <- sort(unique(events$site))
-  dn <- list(site = sites, year = years,
-             replicate = as.character(months))
-  idx <- cbind(match(occasions$site, sites), match(occasions$year, years),
-               occasions$replicate)
-  fill <- function(values) {
-    a <- array(NA_integer_, lengths(dn), dimnames = dn)
-    a[idx] <- as.integer(values)
-    a
+  build_wsg_product <- function(data, retained_sites, suffix = "", label) {
+    retained_events <- data %>%
+      filter(site %in% retained_sites) %>%
+      arrange(site, year, date, raw_row) %>%
+      mutate(replicate = match(month, months), presence = as.integer(catch > 0))
+    if (!nrow(retained_events)) stop("No ", label, " WSG events remain after filtering.")
+
+    # Pool all records in a site/year/month: any positive catch is a detection.
+    occasions <- retained_events %>%
+      group_by(site, year, month, replicate) %>%
+      summarise(presence = as.integer(any(presence == 1L)), .groups = "drop")
+    sites <- sort(unique(retained_events$site))
+    dn <- list(site = sites, year = years, replicate = as.character(months))
+    idx <- cbind(match(occasions$site, sites), match(occasions$year, years),
+                 occasions$replicate)
+    presence <- array(NA_integer_, lengths(dn), dimnames = dn)
+    presence[idx] <- occasions$presence
+
+    # WSG uses a pooled monthly observation under the usual six-trap protocol
+    # (three Minnow + three Fukui). It therefore has no individual-trap CPUE or
+    # trap-type arrays comparable to the other sources.
+    stopifnot(
+      identical(dimnames(presence)$year, dimnames(existing)$year),
+      sum(!is.na(presence)) == nrow(occasions),
+      sum(presence, na.rm = TRUE) == sum(occasions$presence),
+      all(presence[!is.na(presence)] %in% 0:1)
+    )
+    saveRDS(presence,
+            file.path(outdir, paste0("PresenceArrayBinary_WSG", suffix, ".rds")))
+    saveRDS(retained_events,
+            file.path(outdir, paste0("SamplingEvents_WSG", suffix, ".rds")))
+    write.csv(retained_events,
+              file.path(outdir, paste0("SamplingEvents_WSG", suffix, ".csv")),
+              row.names = FALSE)
+    message("Saved ", label, " WSG [site, year, replicate] = ",
+            paste(dim(presence), collapse = " x "), "; ", nrow(occasions),
+            " monthly occasions, ", sum(occasions$presence), " detections; ",
+            sum(retained_events$effort != 6), " events with effort other than six.")
+    invisible(list(presence = presence, events = retained_events,
+                   occasions = occasions))
   }
-  presence <- fill(occasions$presence)
-  # WSG uses a pooled monthly observation under the usual six-trap protocol
-  # (three Minnow + three Fukui). Retain recorded effort in the audit table;
-  # no separate effort or trap-type arrays are needed for this approach.
-  stopifnot(identical(dimnames(presence)$year, dimnames(existing)$year),
-            sum(!is.na(presence)) == nrow(occasions),
-            sum(presence, na.rm = TRUE) == sum(occasions$presence),
-            all(presence[!is.na(presence)] %in% 0:1))
-  saveRDS(presence, file.path(outdir, "PresenceArrayBinary_WSG.rds"))
-  saveRDS(events, file.path(outdir, "SamplingEvents_WSG.rds"))
-  write.csv(events, file.path(outdir, "SamplingEvents_WSG.csv"), row.names = FALSE)
-  message("Saved separate WSG [site, year, replicate] = ",
-          paste(dim(presence), collapse = " x "), "; ", nrow(occasions),
-          " monthly occasions, ", sum(occasions$presence), " detections; ",
-          sum(events$effort != 6), " events with effort other than six.")
+
+  original_wsg <- build_wsg_product(
+    events, coords$site[coords$in_study_extent], label = "original"
+  )
+  expanded_wsg <- build_wsg_product(
+    events, coords$site, suffix = "_expanded", label = "expanded"
+  )
+  original_wsg_index <- match(dimnames(original_wsg$presence)$site,
+                              dimnames(expanded_wsg$presence)$site)
+  stopifnot(
+    !anyNA(original_wsg_index),
+    identical(
+      original_wsg$presence,
+      expanded_wsg$presence[original_wsg_index, , , drop = FALSE]
+    )
+  )
 })

@@ -1,0 +1,6 @@
+"flag","detail"
+"Very large replicate dimension","Maximum is 1179 traps at Makah::Tsoo-Yess River in 2023; this sets the third array dimension for every site-year."
+"High Fukui CPUE","Maximum is 113.23529 at DFO::hillier in 2016."
+"Individual-trap sites outside current zone polygons","216 of 364 sites have no zone_id."
+"WSG sites outside current zone polygons","13 of 72 sites have no zone_id."
+"WSG events with effort other than six","49 events; observed effort ranges from 1 to 6 traps."

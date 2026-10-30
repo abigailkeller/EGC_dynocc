@@ -1,0 +1,365 @@
+"site","zone_id","zone"
+"DFO::anchorage",NA,NA
+"DFO::anderson",2,"Zone 2"
+"DFO::apple",NA,NA
+"DFO::ardmillan",NA,NA
+"DFO::austin",NA,NA
+"DFO::axeeast",NA,NA
+"DFO::axewest",NA,NA
+"DFO::bamfield",NA,NA
+"DFO::barnes",2,"Zone 2"
+"DFO::barrier",NA,NA
+"DFO::benson",NA,NA
+"DFO::berry",NA,NA
+"DFO::boatsouth",NA,NA
+"DFO::botanyend",NA,NA
+"DFO::bottleneck",NA,NA
+"DFO::brabant",NA,NA
+"DFO::buckley",NA,NA
+"DFO::cavin",NA,NA
+"DFO::cayuse",NA,NA
+"DFO::character",NA,NA
+"DFO::cigaretteeast",NA,NA
+"DFO::clarke",NA,NA
+"DFO::clifton",NA,NA
+"DFO::coalharbour",NA,NA
+"DFO::coaster",NA,NA
+"DFO::cooperscove",2,"Zone 2"
+"DFO::david",NA,NA
+"DFO::debris",NA,NA
+"DFO::dempster",NA,NA
+"DFO::diggs",NA,NA
+"DFO::dodd",NA,NA
+"DFO::downie",NA,NA
+"DFO::eastsooke",2,"Zone 2"
+"DFO::edwards",NA,NA
+"DFO::effinghamhead1",NA,NA
+"DFO::effinghammid",NA,NA
+"DFO::fairfax",NA,NA
+"DFO::fanny",NA,NA
+"DFO::fatty",NA,NA
+"DFO::galato",NA,NA
+"DFO::galepass",NA,NA
+"DFO::galesouth",NA,NA
+"DFO::gallagherslough",1,"Zone 1"
+"DFO::galley",NA,NA
+"DFO::gibralter",NA,NA
+"DFO::gilbert",NA,NA
+"DFO::grappler",NA,NA
+"DFO::grapplersouth",NA,NA
+"DFO::greenhouse",2,"Zone 2"
+"DFO::hand",NA,NA
+"DFO::head",NA,NA
+"DFO::henry",NA,NA
+"DFO::hillier",NA,NA
+"DFO::holberg",NA,NA
+"DFO::holbergmid",NA,NA
+"DFO::hutchinson",2,"Zone 2"
+"DFO::ice",NA,NA
+"DFO::inskip",NA,NA
+"DFO::jaques",NA,NA
+"DFO::jarviseast",NA,NA
+"DFO::jarvisnorth",NA,NA
+"DFO::jarvissouth",NA,NA
+"DFO::joe",NA,NA
+"DFO::julian",NA,NA
+"DFO::kainet",NA,NA
+"DFO::kakushdishcove",NA,NA
+"DFO::kakushdishmouth",NA,NA
+"DFO::kakushdishpoint",NA,NA
+"DFO::kelpnorth",NA,NA
+"DFO::klaskinomid",NA,NA
+"DFO::kunsoot",NA,NA
+"DFO::kuper",NA,NA
+"DFO::laing",NA,NA
+"DFO::lambardmid",NA,NA
+"DFO::lambardsouth",NA,NA
+"DFO::leinersouth",NA,NA
+"DFO::lyallwcvi",NA,NA
+"DFO::mackenzie",NA,NA
+"DFO::maplebay",NA,NA
+"DFO::mayne",NA,NA
+"DFO::meadow",NA,NA
+"DFO::monkey",NA,NA
+"DFO::moody",NA,NA
+"DFO::mudgenorth",NA,NA
+"DFO::mudgesouth",NA,NA
+"DFO::mussel",NA,NA
+"DFO::neeta",NA,NA
+"DFO::nettle",NA,NA
+"DFO::nettlenorth",NA,NA
+"DFO::nicomekl",NA,NA
+"DFO::nout",NA,NA
+"DFO::odin",NA,NA
+"DFO::oliver",NA,NA
+"DFO::omoah1",NA,NA
+"DFO::omoah2",NA,NA
+"DFO::omoah3",NA,NA
+"DFO::ormidale",NA,NA
+"DFO::perouse",NA,NA
+"DFO::pim",2,"Zone 2"
+"DFO::pinkerton",NA,NA
+"DFO::pipestem",NA,NA
+"DFO::poison",NA,NA
+"DFO::portsanjuan",1,"Zone 1"
+"DFO::prettygirl",NA,NA
+"DFO::quinoot",NA,NA
+"DFO::rainybay",NA,NA
+"DFO::riley",NA,NA
+"DFO::ritherdon",NA,NA
+"DFO::rochecove",2,"Zone 2"
+"DFO::roy",NA,NA
+"DFO::rupert",NA,NA
+"DFO::sanmateo",NA,NA
+"DFO::sechart",NA,NA
+"DFO::secret",NA,NA
+"DFO::securityend",NA,NA
+"DFO::securityflat",NA,NA
+"DFO::securitymid",NA,NA
+"DFO::sharbour1",2,"Zone 2"
+"DFO::sookelanding",2,"Zone 2"
+"DFO::sookemoutheast",2,"Zone 2"
+"DFO::sookeprestige",2,"Zone 2"
+"DFO::sookeriver",2,"Zone 2"
+"DFO::stopper",NA,NA
+"DFO::tahsis",NA,NA
+"DFO::tahsissouth",NA,NA
+"DFO::thetis",NA,NA
+"DFO::toquart",NA,NA
+"DFO::trounce",NA,NA
+"DFO::tsable",NA,NA
+"DFO::tuno",NA,NA
+"DFO::turret",NA,NA
+"DFO::turtle",NA,NA
+"DFO::useless",NA,NA
+"DFO::varney",NA,NA
+"DFO::vernon",NA,NA
+"DFO::wanokaka",NA,NA
+"DFO::whiffin",2,"Zone 2"
+"DFO::wilsonhg",NA,NA
+"DFO::windy",NA,NA
+"DFO::wouwer",NA,NA
+"DFO::wouwersouth",NA,NA
+"DNWR::Dungeness Spit Base",3,"Zone 3"
+"DNWR::Graveyard Spit East (Lagoon)",3,"Zone 3"
+"DNWR::Graveyard Spit West (Channel)",3,"Zone 3"
+"Makah::Madbear",1,"Zone 1"
+"Makah::Makah Bay",1,"Zone 1"
+"Makah::Neah Bay",1,"Zone 1"
+"Makah::Ozette",NA,NA
+"Makah::Pillar Point",1,"Zone 1"
+"Makah::Tatoosh Island",1,"Zone 1"
+"Makah::Tsoo-Yess River",1,"Zone 1"
+"Makah::Wa'atch Point",1,"Zone 1"
+"Makah::Wa'atch River",1,"Zone 1"
+"WDFW::3 Crabs Road",3,"Zone 3"
+"WDFW::401 - L&C Tree Farms",NA,NA
+"WDFW::Aberdeen Historic Port",NA,NA
+"WDFW::Alder Creek",NA,NA
+"WDFW::Alder St",NA,NA
+"WDFW::Argyle Lagoon",3,"Zone 3"
+"WDFW::Baker Bay - North",NA,NA
+"WDFW::Baldwin Slough",NA,NA
+"WDFW::Bayshore",11,"Zone 11"
+"WDFW::Baywater",7,"Zone 7"
+"WDFW::Beardslee Slough",NA,NA
+"WDFW::Belfair State Park",10,"Zone 10"
+"WDFW::Big Beef Harbor",9,"Zone 9"
+"WDFW::Big Slough",NA,NA
+"WDFW::Billy Frank Jr. Nisqual",11,"Zone 11"
+"WDFW::Billy Frank Jr. Nisqually NWR",11,"Zone 11"
+"WDFW::Birch Point",NA,NA
+"WDFW::Bishops Point",6,"Zone 6"
+"WDFW::Blaine Fishing Pier",NA,NA
+"WDFW::Blaine Marina",NA,NA
+"WDFW::Blakely Harbor",14,"Zone 14"
+"WDFW::Blue Slough",NA,NA
+"WDFW::Boat Haven",2,"Zone 2"
+"WDFW::Boat Haven Marina",6,"Zone 6"
+"WDFW::Bone River",NA,NA
+"WDFW::Brady's Oysters",NA,NA
+"WDFW::Bremerton Yacht Club",12,"Zone 12"
+"WDFW::Bremerton Yacht Club Lagoon",12,"Zone 12"
+"WDFW::Cain Creek",NA,NA
+"WDFW::California Creek",NA,NA
+"WDFW::Campbell Slough",NA,NA
+"WDFW::Cape Disappointment - Boat Launch",NA,NA
+"WDFW::Cedar River",NA,NA
+"WDFW::Central",NA,NA
+"WDFW::Chapman Cove",11,"Zone 11"
+"WDFW::Chehalis River",NA,NA
+"WDFW::Chicken Coop Creek",5,"Zone 5"
+"WDFW::Chico Creek",12,"Zone 12"
+"WDFW::Chimacum Creek",6,"Zone 6"
+"WDFW::Chinook River",NA,NA
+"WDFW::Chuckanut Bay",NA,NA
+"WDFW::Clallam River",1,"Zone 1"
+"WDFW::Clark's Point Lagoon",NA,NA
+"WDFW::Clarks Point",NA,NA
+"WDFW::Clearwater Creek",NA,NA
+"WDFW::Colony Creek",4,"Zone 4"
+"WDFW::Conference Center Lagoon",9,"Zone 9"
+"WDFW::Copalis",NA,NA
+"WDFW::Copalis River",NA,NA
+"WDFW::Crandall Spit",NA,NA
+"WDFW::Cultus Bay",7,"Zone 7"
+"WDFW::Dabob Bay NAP",8,"Zone 8"
+"WDFW::Dakota Creek",NA,NA
+"WDFW::Davison Head",3,"Zone 3"
+"WDFW::Deer Lagoon",6,"Zone 6"
+"WDFW::Delta",NA,NA
+"WDFW::Dewatto",10,"Zone 10"
+"WDFW::Diamond Point",NA,NA
+"WDFW::Discovery Bay - South",5,"Zone 5"
+"WDFW::Dosewallips",9,"Zone 9"
+"WDFW::Drayton Harbor Oyster C",NA,NA
+"WDFW::Driftwood Key Marina",7,"Zone 7"
+"WDFW::Duckabush",9,"Zone 9"
+"WDFW::Duckland",NA,NA
+"WDFW::Dungeness Landing",3,"Zone 3"
+"WDFW::East",NA,NA
+"WDFW::East Westcott Bay",3,"Zone 3"
+"WDFW::Ebey Slough",NA,NA
+"WDFW::Edison River",4,"Zone 4"
+"WDFW::Edison Slough",4,"Zone 4"
+"WDFW::Edmonds Marina",7,"Zone 7"
+"WDFW::Fairmont",5,"Zone 5"
+"WDFW::Fairmount Marsh",5,"Zone 5"
+"WDFW::False Bay",3,"Zone 3"
+"WDFW::Fidalgo Bay",4,"Zone 4"
+"WDFW::Fir Island Farms",4,"Zone 4"
+"WDFW::Foulweather Bluff",7,"Zone 7"
+"WDFW::Freshwater Creek",NA,NA
+"WDFW::Giles Slough",NA,NA
+"WDFW::Gorst Creek",13,"Zone 13"
+"WDFW::Gorst Lagoon",13,"Zone 13"
+"WDFW::Grassy Slough",NA,NA
+"WDFW::Grays Harbor NWR",NA,NA
+"WDFW::Great Peninsula Conservancy",10,"Zone 10"
+"WDFW::Greenhead Slough",NA,NA
+"WDFW::Hama Hama",10,"Zone 10"
+"WDFW::Henry Island - Eastern",3,"Zone 3"
+"WDFW::Henry Island - Eastern Marsh",3,"Zone 3"
+"WDFW::Henry Island Preserve",3,"Zone 3"
+"WDFW::Hungry Harbor",NA,NA
+"WDFW::Hunt Club Rd",NA,NA
+"WDFW::Hwy 105 Slough",NA,NA
+"WDFW::Ilwaco Marina",NA,NA
+"WDFW::Ilwaco Marsh",NA,NA
+"WDFW::Indian Island Lagoon",6,"Zone 6"
+"WDFW::Irondale Beach Park",6,"Zone 6"
+"WDFW::Jensen Point",NA,NA
+"WDFW::Jimmycomelately Creek",5,"Zone 5"
+"WDFW::Joe Leary",4,"Zone 4"
+"WDFW::Johns River",NA,NA
+"WDFW::Kaffee Slough",NA,NA
+"WDFW::Kala Point",6,"Zone 6"
+"WDFW::Kellogg Slough",NA,NA
+"WDFW::Kemmer",NA,NA
+"WDFW::Knappton",NA,NA
+"WDFW::Leadbetter",NA,NA
+"WDFW::Leadbetter Point",NA,NA
+"WDFW::Lewis Slough",NA,NA
+"WDFW::Linger Longer",8,"Zone 8"
+"WDFW::Livingston Bay",6,"Zone 6"
+"WDFW::Long Lagoon",5,"Zone 5"
+"WDFW::Long Spit",8,"Zone 8"
+"WDFW::Long's Lagoon",5,"Zone 5"
+"WDFW::Lytle Seafoods",NA,NA
+"WDFW::March's Point",4,"Zone 4"
+"WDFW::Maynard Lagoon",5,"Zone 5"
+"WDFW::McKinley Lagoon",2,"Zone 2"
+"WDFW::Megler Creek",NA,NA
+"WDFW::Middle",4,"Zone 4"
+"WDFW::Middle Sands",NA,NA
+"WDFW::Misery Point Lagoon",9,"Zone 9"
+"WDFW::Mutiny Bay",6,"Zone 6"
+"WDFW::Mystery Bay",6,"Zone 6"
+"WDFW::Nahcotta",NA,NA
+"WDFW::Nemah",NA,NA
+"WDFW::Nick's Lagoon",9,"Zone 9"
+"WDFW::Nisqually Reserve",11,"Zone 11"
+"WDFW::North Nemah River",NA,NA
+"WDFW::North Quilcene Bay",8,"Zone 8"
+"WDFW::North River",NA,NA
+"WDFW::Northeast",4,"Zone 4"
+"WDFW::Northern Marsh",8,"Zone 8"
+"WDFW::O'Meara Point",NA,NA
+"WDFW::Oak Bay",6,"Zone 6"
+"WDFW::Ocean Shores",NA,NA
+"WDFW::Oyhut",NA,NA
+"WDFW::Parpala",NA,NA
+"WDFW::Penn Cove",6,"Zone 6"
+"WDFW::Point Hudson Marina",6,"Zone 6"
+"WDFW::Point Julia North",7,"Zone 7"
+"WDFW::Point Whitehorn",NA,NA
+"WDFW::Point Whitney",8,"Zone 8"
+"WDFW::Port Gamble",7,"Zone 7"
+"WDFW::Port Ludlow Marina",7,"Zone 7"
+"WDFW::Port Madison Yacht Club",7,"Zone 7"
+"WDFW::Port Susan Bay",6,"Zone 6"
+"WDFW::Port of Kingston",7,"Zone 7"
+"WDFW::Port of Peninsula",NA,NA
+"WDFW::Port of Poulsbo",7,"Zone 7"
+"WDFW::Portage Canal",6,"Zone 6"
+"WDFW::Post Point Lagoon",NA,NA
+"WDFW::Potlatch State Park",10,"Zone 10"
+"WDFW::Preachers Slough",NA,NA
+"WDFW::Priest Point",NA,NA
+"WDFW::Pysht",1,"Zone 1"
+"WDFW::Quartermaster Harbor",11,"Zone 11"
+"WDFW::Queets River",NA,NA
+"WDFW::Races Cove",7,"Zone 7"
+"WDFW::Rendsland",10,"Zone 10"
+"WDFW::Right Smart Cove",8,"Zone 8"
+"WDFW::Roche Harbor",3,"Zone 3"
+"WDFW::Salmon Creek",5,"Zone 5"
+"WDFW::Salt Creek",2,"Zone 2"
+"WDFW::Samish River",4,"Zone 4"
+"WDFW::Schel Chelb Lagoon",14,"Zone 14"
+"WDFW::Scow Bay",6,"Zone 6"
+"WDFW::Seabeck Conference Center Lagoon",9,"Zone 9"
+"WDFW::Seabeck Marina",9,"Zone 9"
+"WDFW::Semiahmoo Resort",NA,NA
+"WDFW::Sequim Bay - South",5,"Zone 5"
+"WDFW::Shine Creek Estuary",7,"Zone 7"
+"WDFW::Shine Tidelands",7,"Zone 7"
+"WDFW::Skagit Bay Estuary",4,"Zone 4"
+"WDFW::Skokomish Estuary",11,"Zone 11"
+"WDFW::Skunk Island Lagoon",6,"Zone 6"
+"WDFW::Snow Creek",5,"Zone 5"
+"WDFW::Sopun Inlet",NA,NA
+"WDFW::South",4,"Zone 4"
+"WDFW::South Bay Berm",NA,NA
+"WDFW::South Bay Berm - Inside",NA,NA
+"WDFW::South Bay Berm - Outside",NA,NA
+"WDFW::Southeast",NA,NA
+"WDFW::Squalicum Harbor",NA,NA
+"WDFW::Stackpole",NA,NA
+"WDFW::Stavis Lagoon",9,"Zone 9"
+"WDFW::Tahuya",10,"Zone 10"
+"WDFW::Tarboo Creek",8,"Zone 8"
+"WDFW::Taylor",4,"Zone 4"
+"WDFW::Taylor Shellfish",4,"Zone 4"
+"WDFW::Terrell Creek",NA,NA
+"WDFW::Thorndyke",7,"Zone 7"
+"WDFW::Tokeland",NA,NA
+"WDFW::Tokeland Marina",NA,NA
+"WDFW::Tokeland Swimming Hole",NA,NA
+"WDFW::Tramp Harbor",11,"Zone 11"
+"WDFW::Trestle Lagoon",5,"Zone 5"
+"WDFW::Tulalip Bay",6,"Zone 6"
+"WDFW::Twin Rivers",11,"Zone 11"
+"WDFW::Waikiki Lagoon",NA,NA
+"WDFW::Walan Point",6,"Zone 6"
+"WDFW::Wallacut River",NA,NA
+"WDFW::Washington Harbor",3,"Zone 3"
+"WDFW::West",NA,NA
+"WDFW::West Pass",6,"Zone 6"
+"WDFW::Westcott Bay Marsh",3,"Zone 3"
+"WDFW::Westport Airport",NA,NA
+"WDFW::Westport Ballfield",NA,NA
+"WDFW::White Point Lagoon",3,"Zone 3"
+"WDFW::Willapa Bay Bridge",NA,NA
+"WDFW::Winslow Wharf",14,"Zone 14"
+"WDFW::Wolfe Property",7,"Zone 7"
