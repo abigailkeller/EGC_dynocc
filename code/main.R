@@ -7,89 +7,61 @@ library(tidyverse)
 # read in data #
 ################
 
+# read in connectivity data - larvae settled
+conn_paths <- c("data/connectivity/2013_connectivity_counts_365.csv",
+                "data/connectivity/2014_connectivity_counts_365.csv",
+                "data/connectivity/2015_connectivity_counts_365.csv",
+                "data/connectivity/2016_connectivity_counts_365.csv",
+                "data/connectivity/2017_connectivity_counts_365.csv",
+                "data/connectivity/2018_connectivity_counts_365.csv",
+                "data/connectivity/2019_connectivity_counts_365.csv",
+                "data/connectivity/2020_connectivity_counts_365.csv",
+                "data/connectivity/2021_connectivity_counts_365.csv",
+                "data/connectivity/2022_connectivity_counts_365.csv",
+                "data/connectivity/2023_connectivity_counts_365.csv")
+conn_2013 <- read.csv(conn_paths[1])
+site_names <- conn_2013$settlement_site_id
+nsite <- length(site_names)
+nyear <- length(conn_paths)
+larv_S <- array(data = NA, dim = c(nsite, nsite, nyear))
+larv_S[1:nsite, 1:nsite, 1] <- as.matrix(conn_2013[, 3:(nsite + 2)])
+for (i in 2:length(conn_paths)) {
+  larv_S[1:nsite, 1:nsite, i] <- as.matrix(
+    read.csv(conn_paths[i])[, 3:(nsite + 2)])
+}
+
+# read in connectivity data - larvae settled
+larv_R <- as.matrix(read.csv("data/connectivity/larvae_released.csv",
+                             row.names = 1)[, 2:12])
+
+# read in connectivity data - external settlers
+larv_E <- as.matrix(read.csv("data/connectivity/larvae_external_settlers.csv",
+                             row.names = 1)[, 2:12])
+
 # 2014 - 2024
 
-cpue <- readRDS("data/model_data/cpue_zone_year.rds")[c(1, 3:14), 8:18]
-detections <- readRDS("data/model_data/PresenceArrayBinary.rds")#[, 2:7, ]
-detections_WSG <- readRDS("data/model_data/PresenceArrayBinary_WSG.rds")#[, 2:7, ]
-type <- readRDS("data/model_data/TrapTypeArraysNew.rds")
-zones <- read.csv("data/model_data/site_zone_map.csv")[, "zone_id"]
-wsg_zones <- read.csv("data/model_data/site_zone_map_WSG.csv")[, "zone_id"]
-wsg_map <- read.csv("data/model_data/wsg_map.csv")
-
-##############
-# clean data #
-##############
-
-##
-# get sites without traps
-##
-##
-
-# remove <- as.integer(which(apply(detections, 1, function(s) all(is.na(s)))))
-# remove_WSG <- as.integer(which(apply(detections_WSG, 1, 
-#                                      function(s) all(is.na(s)))))
-# 
-# # remove sites without traps
-# detections <- detections[-remove, , ]
-# zones <- zones[-remove]
-# detections_WSG <- detections_WSG[-remove_WSG, , ]
-# wsg_map <- wsg_map[-remove_WSG, , ]
-# wsg_zones <- wsg_zones[-remove_WSG]
+#cpue <- readRDS("data/model_data/cpue_fukui_expanded.rds")[, 1:10]
+detections <- readRDS("data/model_data/PresenceArrayBinary_expanded.rds")
+detections_WSG <- readRDS("data/model_data/PresenceArrayBinary_WSG_expanded.rds")
+type <- readRDS("data/model_data/TrapTypeArraysNew_expanded.rds")
+#wsg_map <- read.csv("data/model_data/wsg_map.csv")
 
 # split up trap types
-type_M <- type$Minnow#[-remove, 2:7, ]
-type_F <- type$Fukui#[-remove, 2:7, ]
-type_S <- type$Shrimp#[-remove, 2:7, ]
+type_M <- type$Minnow
+type_F <- type$Fukui
+type_S <- type$Shrimp
 
-# NA for Campbell Slough
-zones[which(is.na(zones))] <- 1
+# remove sites not in larval data
+site_names_main <- rownames(detections[, 1, ])
+keep <- which(site_names_main %in% site_names)
+detections <- detections[keep, , ]
+type_M <- type_M[keep, , ]; type_F <- type_F[keep, , ]; type_S <- type_S[keep, , ]
+site_names_main <- site_names_main[keep]
+nsite_main <- length(site_names_main)
 
-##
-# remove zone 2
-##
-##
-
-zone2 <- which(zones == 2)
-
-detections <- detections[-zone2, , ]
-zones <- zones[-zone2]
-
-# trap types
-type_M <- type_M[-zone2, , ]
-type_F <- type_F[-zone2, , ]
-type_S <- type_S[-zone2, , ]
-
-# replace zone 14 with zone 2
-zones[which(zones == 14)] <- 2
-wsg_zones[which(wsg_zones == 14)] <- 2
-
-# get constants
-nyear <- dim(detections)[2]
-nsite <- dim(detections)[1]
-nzone <- length(unique(zones))
-nyear_wsg <- dim(detections_WSG)[2]
-nsite_wsg <- dim(detections_WSG)[1]
-
-# create index for WSG sites
-site_names <- rownames(detections[, 1, ])
-site_names_wsg <- rownames(detections_WSG)
-ind_WSG <- rep(NA, length(site_names_wsg))
-site_counter <- nsite + 1
-for (i in 1:length(ind_WSG)) {
-  name <- wsg_map[which(wsg_map[, "WSG"] == site_names_wsg[i]), "Other"]
-  if (length(name) == 1) {
-    ind_WSG[i] <- which(site_names == name)
-  } else {
-    ind_WSG[i] <- site_counter
-    site_counter <- site_counter + 1
-  }
-}
-nsite_total <- site_counter - 1
-
-# get ntraps for each site/year
-ntraps <- matrix(NA, nrow = nsite, ncol = nyear)
-for (i in 1:nsite) {
+# get ntraps for each site/year for non-WSG detections
+ntraps <- matrix(NA, nrow = nsite_main, ncol = nyear)
+for (i in 1:nsite_main) {
   for (t in 1:nyear) {
     ntraps[i, t] <- sum(!is.na(detections[i, t,]))
   }
@@ -105,7 +77,7 @@ obs_yS <- rep(0, nObs)
 y_long <- rep(0, nObs)
 
 ind <- 1
-for (i in 1:nsite) {
+for (i in 1:nsite_main) {
   for (t in 1:nyear) {
     if (ntraps[i, t] > 0) {
       obs_site[ind:(ind + ntraps[i, t] - 1)] <- i
@@ -126,9 +98,10 @@ obs_yF[is.na(obs_yF)] <- 0
 obs_yS[is.na(obs_yS)] <- 0
 
 # get nvisits for each site/year in WSG data
-nvisits_wsg <- matrix(NA, nrow = nsite_wsg, ncol = nyear_wsg)
+nsite_wsg <- dim(detections_WSG)[1]
+nvisits_wsg <- matrix(NA, nrow = nsite_wsg, ncol = nyear)
 for (i in 1:nsite_wsg) {
-  for (t in 1:nyear_wsg) {
+  for (t in 1:nyear) {
     nvisits_wsg[i, t] <- sum(!is.na(detections_WSG[i, t,]))
   }
 }
@@ -141,11 +114,11 @@ y_long_WSG <- rep(0, nObs_wsg)
 
 ind <- 1
 for (i in 1:nsite_wsg) {
-  for (t in 1:nyear_wsg) {
+  for (t in 1:nyear) {
     keep <- which(!is.na(detections_WSG[i, t, ]))
     if (length(keep) > 0) {
       n <- length(keep)
-      obs_site_wsg[ind:(ind + n - 1)] <- ind_WSG[i]
+      obs_site_wsg[ind:(ind + n - 1)] <- i
       obs_year_wsg[ind:(ind + n - 1)] <- t
       y_long_WSG[ind:(ind + n - 1)] <- detections_WSG[i, t, keep]
       ind <- ind + n
@@ -153,34 +126,6 @@ for (i in 1:nsite_wsg) {
   }
 }
 
-# get all zones
-zones_full <- rep(NA, nsite_total)
-zones_full[1:nsite] <- as.integer(zones)
-for (i in seq_along(ind_WSG)) {
-  if (ind_WSG[i] > nsite) zones_full[ind_WSG[i]] <- as.integer(wsg_zones[i])
-}
-
-# read in connectivity data - larvae settled
-larv_S <- array(data = NA, dim = c(nzone, nzone, nyear))
-conn_paths <- c("data/connectivity/_zones_yearly_connectivity_matrix_counts_2013.csv",
-                "data/connectivity/_zones_yearly_connectivity_matrix_counts_2014.csv",
-                "data/connectivity/_zones_yearly_connectivity_matrix_counts_2015.csv",
-                "data/connectivity/_zones_yearly_connectivity_matrix_counts_2016.csv",
-                "data/connectivity/_zones_yearly_connectivity_matrix_counts_2017.csv",
-                "data/connectivity/_zones_yearly_connectivity_matrix_counts_2018.csv",
-                "data/connectivity/_zones_yearly_connectivity_matrix_counts_2019.csv",
-                "data/connectivity/_zones_yearly_connectivity_matrix_counts_2020.csv",
-                "data/connectivity/_zones_yearly_connectivity_matrix_counts_2021.csv",
-                "data/connectivity/_zones_yearly_connectivity_matrix_counts_2022.csv",
-                "data/connectivity/_zones_yearly_connectivity_matrix_counts_2023.csv")
-for (i in 1:nyear) {
-  larv_S[1:nzone, 1:nzone, i] <- as.matrix(
-    read.csv(conn_paths[i])[, 2:15])[c(1, 3:14), c(1, 3:14)]
-}
-
-# read in connectivity data - larvae settled
-larv_R <- as.matrix(read.csv("data/SpatialData/yearly_larvae_released.csv",
-                             row.names = 1)[c(1, 3:14), 1:11])
 
 
 ##############
@@ -218,9 +163,9 @@ model_code <- nimbleCode({
   }
   
   # --- Connectivity (random variable)
-  for (i in 1:nZones) {
+  for (i in 1:nSites) {
     for (t in 1:nYears) {
-      for (k in 1:nZones) {
+      for (k in 1:nSites) {
         
         # probability of connectivity
         C[i, k, t] ~ dbeta(1, 1)
@@ -232,11 +177,13 @@ model_code <- nimbleCode({
     for (t in 2:nYears) {
       
       # Probability of colonization
-      logit(gamma[i, t - 1]) <- colonization(beta0, beta1, beta2,
+      logit(gamma[i, t - 1]) <- colonization(
+        beta0, beta1, beta2,
         C[i, 1:nZones, (t-1):t], i, Kscale)
       
       # Probability of persistence
-      logit(epsilon[i, t - 1]) <- persistence(beta3, beta4, 
+      logit(epsilon[i, t - 1]) <- persistence(
+        beta3, beta4, 
         C[i, i, t], Kscale)
     }
   }
@@ -289,7 +236,7 @@ for (i in 1:nzone) {
 X <- matrix(NA, nzone, nyear)
 for (i in 1:nzone) for (t in 1:nyear) {
   j <- setdiff(1:nzone, i)
-  X[i, t] <- sum(C_hat[i, j, t])
+  X[i, t] <- sum(cpue[j, t] * C_hat[i, j, t])
 }
 Kscale <- sd(as.vector(X), na.rm = TRUE)
 
@@ -320,6 +267,7 @@ constants <- list(
 
 data <- list(y_long = y_long, 
              y_long_WSG = y_long_WSG,
+             CPUE = cpue, # dimensions [zones, years]
              larv_R = larv_R, # no. released larvae [zones, years]
              larv_S = larv_S # no. settled larvae [zones_set, zones_rel, years]
 ) 
@@ -357,7 +305,8 @@ out <- clusterEvalQ(cl, {
   
   # Define nimbleFunctions directly on each worker
   colonization <- nimbleFunction(
-    run = function(beta0 = double(0), beta1 = double(0), 
+    run = function(#CPUE = double(2), 
+                   beta0 = double(0), beta1 = double(0), 
                    beta2 = double(0), C = double(2), index = double(0),
                    Kscale = double(0))
     {
@@ -367,8 +316,8 @@ out <- clusterEvalQ(cl, {
       gamma <- 0
       for (j in 1:n) {
         if (j != idx) {
-          gamma <- gamma + beta1 * C[j, 2] / Kscale +
-            beta2 * C[j, 1] / Kscale
+          gamma <- gamma + CPUE[j, 2] * beta1 * C[j, 2] / Kscale +
+            CPUE[j, 1] * beta2 * C[j, 1] / Kscale
         }
       }
       gamma <- gamma + beta0
@@ -378,11 +327,12 @@ out <- clusterEvalQ(cl, {
   assign("colonization", colonization, envir = .GlobalEnv)
   
   persistence <- nimbleFunction(
-    run = function(beta3 = double(0), beta4 = double(0), 
+    run = function(CPUE = double(0), 
+                   beta3 = double(0), beta4 = double(0), 
                    C = double(0), Kscale = double(0))
     {
       returnType(double(0))
-      epsilon <- beta3 + C * beta4 / Kscale
+      epsilon <- beta3 + CPUE * C * beta4 / Kscale
       return(epsilon)
     }
   )
@@ -416,7 +366,7 @@ out <- clusterEvalQ(cl, {
   # run MCMC
   # cmodel_mcmc$run(1000000, thin = 1000,
   #                 reset = FALSE)
-  cmodel_mcmc$run(100000, thin = 100,
+  cmodel_mcmc$run(10000, thin = 10,
                   reset = FALSE)
   
   samples <- as.mcmc(as.matrix(cmodel_mcmc$mvSamples))
@@ -434,7 +384,7 @@ out_sub <- list(out[[1]][sequence, ], out[[2]][sequence, ],
                 out[[7]][sequence, ], out[[8]][sequence, ])
 
 # save samples
-saveRDS(out_sub, "data/posterior_samples/posterior_samples_20260917.rds")
+saveRDS(out_sub, "data/posterior_samples/posterior_samples_20260917_short.rds")
 
 stopCluster(cl)
 

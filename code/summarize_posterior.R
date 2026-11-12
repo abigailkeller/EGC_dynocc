@@ -3,25 +3,26 @@ library(tidyverse)
 library(patchwork)
 
 # read in samples
-samples1 <- readRDS("data/posterior_samples/posterior_samples_rescale1.rds")
-samples2 <- readRDS("data/posterior_samples/posterior_samples_rescale2.rds")
-samples3 <- readRDS("data/posterior_samples/posterior_samples_rescale3.rds")
-samples4 <- readRDS("data/posterior_samples/posterior_samples_rescale4.rds")
+samples1 <- readRDS("data/posterior_samples/posterior_samples_20261111_1year_prod.rds")
+samples2 <- readRDS("data/posterior_samples/posterior_samples_20261111_2year_prod.rds")
+
+# subset to non-latent nodes
+param_sub1 <- which(colnames(samples1[[1]]) %in% c("beta0", "beta1", "beta2",
+                                                   "beta3", "beta4", "p_minnow", 
+                                                   "p_fukui", "p_shrimp", "psi"))
+param_sub2 <- which(colnames(samples2[[1]]) %in% c("beta0", "beta1", "beta2",
+                                                   "beta3", "beta4", "p_minnow", 
+                                                   "p_fukui", "p_shrimp", "psi"))
+samples_sub1 <- lapply(samples1, function(ch) ch[, param_sub1])
+samples_sub2 <- lapply(samples2, function(ch) ch[, param_sub2])
 
 # summarize
-summary1 <- MCMCsummary(samples1)
-summary2 <- MCMCsummary(samples2)
-summary3 <- MCMCsummary(samples3)
-summary4 <- MCMCsummary(samples4)
-
-# covariates
-summary1[c("beta0", "beta1", "beta2", "beta3"), ]
-summary2[c("beta0", "beta1", "beta2", "beta3"), ]
-summary3[c("beta0", "beta1", "beta2", "beta3"), ]
-summary4[c("beta0", "beta1", "beta2"), ]
+summary1 <- MCMCsummary(samples_sub1)
+summary2 <- MCMCsummary(samples_sub2)
 
 # trace plot
-param <- "beta1"
+param <- "beta4"
+samples <- samples2
 
 ggplot() +
   geom_line(aes(x = 1:nrow(samples[[1]]), y = samples[[1]][, param]),

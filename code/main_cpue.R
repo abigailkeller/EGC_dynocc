@@ -9,12 +9,12 @@ library(tidyverse)
 
 # 2014 - 2024
 
-cpue <- readRDS("data/model_data/cpue_zone_year.rds")[c(1, 3:14), 8:18]
-detections <- readRDS("data/model_data/PresenceArrayBinary.rds")#[, 2:7, ]
-detections_WSG <- readRDS("data/model_data/PresenceArrayBinary_WSG.rds")#[, 2:7, ]
-type <- readRDS("data/model_data/TrapTypeArraysNew.rds")
-zones <- read.csv("data/model_data/site_zone_map.csv")[, "zone_id"]
-wsg_zones <- read.csv("data/model_data/site_zone_map_WSG.csv")[, "zone_id"]
+cpue <- readRDS("data/model_data/cpue_fukui_expanded.rds")[c(1, 3:14), 8:18]
+detections <- readRDS("data/model_data/PresenceArrayBinary_expanded.rds")#[, 2:7, ]
+detections_WSG <- readRDS("data/model_data/PresenceArrayBinary_WSG_expanded.rds")#[, 2:7, ]
+type <- readRDS("data/model_data/TrapTypeArraysNew_expanded.rds")
+#zones <- read.csv("data/model_data/site_zone_map_expanded.csv")[, "zone_id"]
+#wsg_zones <- read.csv("data/model_data/site_zone_map_WSG_expanded.csv")[, "zone_id"]
 wsg_map <- read.csv("data/model_data/wsg_map.csv")
 
 ##############
